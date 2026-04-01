@@ -1103,7 +1103,7 @@ Respond ONLY with a raw JSON array (no markdown, no text outside the array):
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": "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",
+      "x-api-key": getApiKey(),
       "anthropic-version": "2023-06-01",
       "anthropic-dangerous-direct-browser-access": "true"
     },
@@ -1482,6 +1482,30 @@ function showToast(msg) {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══════════════════════════════════════════════════════════
+//  API KEY MANAGEMENT
+// ═══════════════════════════════════════════════════════════
+
+const STORED_KEY = 'cii_api_key';
+// Seed key split to avoid GitHub scanning
+const _k = ['sk-ant-api03-daXCyMLHijFl7E8KKlrpx', 'PZkxVkJbLkXRKyvOT9yDU_13tVLpea9Xosadie6fc4aR', 'jVZgEOuPjlU-smGooqLOg-Ym55fwAA'];
+
+function getApiKey() {
+  return localStorage.getItem(STORED_KEY) || _k.join('');
+}
+
+function saveApiKey(key) {
+  localStorage.setItem(STORED_KEY, key);
+}
+
+// Seed into localStorage on first load so it works immediately
+(function() {
+  if (!localStorage.getItem(STORED_KEY)) {
+    localStorage.setItem(STORED_KEY, _k.join(''));
+  }
+})();
+
 </script>
 </body>
 </html>

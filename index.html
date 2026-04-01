@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cert CII · Unlimited Question Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0f14;
+  --surface: #13181f;
+  --surface2: #1a2030;
+  --border: rgba(255,255,255,0.07);
+  --border-gold: rgba(212,175,55,0.35);
+  --gold: #d4af37;
+  --gold-bright: #f0cc5a;
+  --gold-dim: rgba(212,175,55,0.15);
+  --text: #e8e4dc;
+  --text-muted: #7a8499;
+  --text-dim: #4a5568;
+  --green: #34d399;
+  --green-bg: rgba(52,211,153,0.08);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.08);
+  --blue: #60a5fa;
+  --r: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Subtle grid bg */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(212,175,55,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212,175,55,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── LAYOUT ── */
+.app { position: relative; z-index: 1; }
+
+/* ── HOME ── */
+#home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.home-glow {
+  position: fixed;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 500px;
+  background: radial-gradient(ellipse, rgba(212,175,55,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cii-crest {
+  width: 64px; height: 64px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.cii-crest::before {
+  content: '';
+  position: absolute; inset: -6px;
+  border: 1px solid var(--border-gold);
+  border-radius: 50%;
+}
+
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+h1 .accent { color: var(--gold); font-style: italic; }
+
+.tagline {
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 300;
+  text-align: center;
+  max-width: 460px;
+  margin-bottom: 56px;
+  line-height: 1.8;
+}
+
+/* Mode selector */
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  width: 100%;
+  max-width: 780px;
+  margin-bottom: 32px;
+}
+
+.mode-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 24px 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.mode-card:hover, .mode-card.active {
+  border-color: var(--border-gold);
+  background: var(--surface2);
+  transform: translateY(-2px);
+}
+.mode-card.active::before, .mode-card:hover::before { opacity: 1; }
+
+.mode-icon { font-size: 1.6rem; margin-bottom: 12px; }
+.mode-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.mode-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+.active-dot {
+  position: absolute; top: 14px; right: 14px;
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: none;
+}
+.mode-card.active .active-dot { display: block; }
+
+/* Unit selector */
+.unit-section { width: 100%; max-width: 780px; margin-bottom: 32px; }
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.unit-pills {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+
+.unit-pill {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.unit-pill:hover { border-color: var(--border-gold); color: var(--text); }
+.unit-pill.on { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+/* Q count */
+.q-count-row {
+  display: flex; align-items: center; gap: 16px;
+  width: 100%; max-width: 780px;
+  margin-bottom: 40px;
+}
+
+.count-label { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; }
+
+.count-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.count-btn {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 18px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.count-btn:hover { border-color: var(--border-gold); color: var(--text); }
+.count-btn.on { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+.btn-start {
+  background: linear-gradient(135deg, #b8962e, var(--gold-bright));
+  color: #0c0f14;
+  border: none;
+  padding: 16px 56px;
+  border-radius: 10px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  letter-spacing: 0.03em;
+  width: 100%;
+  max-width: 320px;
+}
+
+.btn-start:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(212,175,55,0.3);
+}
+
+.btn-start:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Stats bar on home */
+.stats-home {
+  display: flex; gap: 32px; margin-top: 48px;
+  flex-wrap: wrap; justify-content: center;
+}
+
+.stat-home {
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--gold);
+  display: block;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-name {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── EXAM SCREEN ── */
+#exam { display: none; min-height: 100vh; padding-bottom: 60px; }
+
+.exam-topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(12,15,20,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px;
+}
+
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+
+.unit-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  padding: 4px 12px;
+  border-radius: 100px;
+}
+
+.q-indicator {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.topbar-center {
+  flex: 1; max-width: 400px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  width: 0%;
+}
+
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+.score-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.btn-quit {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+}
+.btn-quit:hover { border-color: var(--red); color: var(--red); }
+
+/* Question area */
+.question-wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 48px 24px 0;
+}
+
+/* Loading state */
+.q-loading {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 80px 0; gap: 20px;
+}
+
+.spinner {
+  width: 44px; height: 44px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.loading-subtext {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-align: center;
+  max-width: 300px;
+}
+
+/* Question card */
+.q-meta {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+}
+
+.q-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.difficulty-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.diff-easy { background: var(--green); }
+.diff-medium { background: var(--gold); }
+.diff-hard { background: var(--red); }
+
+.diff-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.question-stem {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  margin-bottom: 36px;
+}
+
+/* Options */
+.options { display: flex; flex-direction: column; gap: 11px; margin-bottom: 36px; }
+
+.option {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 15px 18px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 15px;
+  transition: all 0.18s ease;
+  text-align: left;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+}
+
+.option::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.option:hover:not(.locked) {
+  border-color: rgba(212,175,55,0.4);
+  background: var(--surface2);
+}
+
+.opt-letter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--gold);
+  background: var(--gold-dim);
+  border: 1px solid rgba(212,175,55,0.2);
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.option.selected { border-color: var(--gold); background: rgba(212,175,55,0.06); }
+.option.selected .opt-letter { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+
+.option.correct {
+  border-color: var(--green);
+  background: var(--green-bg);
+}
+.option.correct .opt-letter { background: var(--green); color: var(--bg); border-color: var(--green); }
+
+.option.wrong {
+  border-color: var(--red);
+  background: var(--red-bg);
+}
+.option.wrong .opt-letter { background: var(--red); color: #fff; border-color: var(--red); }
+
+.option.locked { cursor: default; }
+.option.dimmed { opacity: 0.4; }
+
+/* Explanation panel */
+.explanation-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--r);
+  padding: 20px 22px;
+  margin-bottom: 32px;
+  display: none;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.exp-header-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+
+.exp-icon {
+  font-size: 1rem;
+}
+
+.exp-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.exp-text {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+  min-height: 40px;
+}
+
+.exp-text .exp-loading {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.pulse-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* Action row */
+.action-row {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+}
+
+.btn-skip {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+}
+.btn-skip:hover { border-color: var(--border-gold); color: var(--text-muted); }
+
+.btn-next {
+  background: linear-gradient(135deg, #b8962e, var(--gold-bright));
+  color: var(--bg);
+  border: none;
+  padding: 12px 36px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,55,0.3); }
+.btn-next:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* Prefetch indicator */
+.prefetch-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.prefetch-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+
+.prefetch-dot.loading { background: var(--gold); }
+.prefetch-dot.empty { background: var(--text-dim); animation: none; }
+
+/* ── RESULTS ── */
+#results { display: none; min-height: 100vh; padding: 48px 24px 80px; }
+
+.results-inner { max-width: 860px; margin: 0 auto; }
+
+.results-hero {
+  text-align: center;
+  padding: 56px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.results-hero::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.score-display {
+  display: flex; flex-direction: column; align-items: center; margin-bottom: 28px;
+}
+
+.score-circle {
+  width: 150px; height: 150px;
+  border-radius: 50%;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 24px;
+}
+
+.score-svg {
+  position: absolute; inset: 0;
+  transform: rotate(-90deg);
+}
+
+.score-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8; }
+.score-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+.score-inner-text {
+  display: flex; flex-direction: column; align-items: center; z-index: 1;
+}
+
+.score-big {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  color: var(--text);
+  line-height: 1;
+}
+
+.score-small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.verdict {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.verdict-sub { color: var(--text-muted); font-size: 0.9rem; }
+
+.results-chips {
+  display: flex; gap: 12px; justify-content: center; margin-top: 28px; flex-wrap: wrap;
+}
+
+.chip {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 8px 20px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.chip strong { color: var(--text); }
+
+.pass-chip { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+.fail-chip { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+
+/* Review section */
+.review-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+
+.review-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+.filter-pills { display: flex; gap: 8px; }
+
+.filter-pill {
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-muted);
+  font-family: 'Outfit', sans-serif;
+}
+
+.filter-pill:hover { border-color: var(--border-gold); color: var(--text); }
+.filter-pill.on { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+
+/* Review cards */
+.review-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.review-card.correct { border-left: 3px solid var(--green); }
+.review-card.wrong { border-left: 3px solid var(--red); }
+.review-card.skipped { border-left: 3px solid var(--text-dim); }
+
+.review-card-header {
+  padding: 16px 20px;
+  display: flex; align-items: flex-start; gap: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.rv-icon {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0; margin-top: 1px;
+}
+
+.rv-icon.correct { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+.rv-icon.wrong { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+.rv-icon.skipped { background: rgba(255,255,255,0.04); color: var(--text-dim); border: 1px solid var(--border); }
+
+.rv-q { flex: 1; font-size: 0.9rem; color: var(--text); line-height: 1.5; }
+.rv-unit { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 4px; }
+.rv-chevron { color: var(--text-dim); transition: transform 0.3s; flex-shrink: 0; font-size: 0.9rem; }
+.rv-chevron.open { transform: rotate(180deg); }
+
+.review-card-body {
+  display: none;
+  padding: 0 20px 20px 60px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.review-card-body.open { display: block; }
+
+.answer-tags { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+
+.answer-tag {
+  font-size: 0.78rem;
+  padding: 4px 12px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+}
+
+.tag-yours { background: var(--red-bg); color: var(--red); border-color: rgba(248,113,113,0.3); }
+.tag-yours.correct { background: var(--green-bg); color: var(--green); border-color: rgba(52,211,153,0.3); }
+.tag-correct { background: var(--green-bg); color: var(--green); border-color: rgba(52,211,153,0.3); }
+
+.review-explanation {
+  font-size: 0.87rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+  background: rgba(0,0,0,0.25);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.results-actions {
+  display: flex; gap: 12px; justify-content: center;
+  margin-top: 40px; flex-wrap: wrap;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  padding: 13px 32px;
+  border-radius: 9px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { border-color: var(--border-gold); color: var(--text); }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border-gold);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 0.85rem;
+  color: var(--text);
+  z-index: 999;
+  animation: toastIn 0.3s ease;
+  display: none;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .exam-topbar { padding: 0 16px; }
+  .topbar-center { display: none; }
+  .question-wrap { padding: 28px 16px 0; }
+  .question-stem { font-size: 1.15rem; }
+  h1 { font-size: 1.9rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ════════════════════════════════════════ HOME ══ -->
+<div id="home">
+  <div class="home-glow"></div>
+
+  <div class="cii-crest">CII</div>
+
+  <h1>Unlimited <span class="accent">Cert CII</span><br>Question Engine</h1>
+  <p class="tagline">AI-generated questions that never repeat. Authentic CII style across IF1, IF3 and IF4. Study smarter.</p>
+
+  <div class="mode-grid">
+    <div class="mode-card active" data-mode="exam" onclick="selectMode(this)">
+      <div class="active-dot"></div>
+      <div class="mode-icon">📋</div>
+      <div class="mode-title">Full Mock Exam</div>
+      <div class="mode-desc">Timed, graded exam with full review and explanations at the end.</div>
+    </div>
+    <div class="mode-card" data-mode="practice" onclick="selectMode(this)">
+      <div class="active-dot"></div>
+      <div class="mode-icon">⚡</div>
+      <div class="mode-title">Practice Mode</div>
+      <div class="mode-desc">Instant feedback after each answer with explanations as you go.</div>
+    </div>
+    <div class="mode-card" data-mode="weakspot" onclick="selectMode(this)">
+      <div class="active-dot"></div>
+      <div class="mode-icon">🎯</div>
+      <div class="mode-title">Weak Spot Drill</div>
+      <div class="mode-desc">Focus only on topics you've previously answered incorrectly.</div>
+    </div>
+  </div>
+
+  <div class="unit-section">
+    <div class="section-label">Units</div>
+    <div class="unit-pills">
+      <div class="unit-pill on" data-unit="IF1" onclick="toggleUnit(this)">IF1 · Legal & Regulatory</div>
+      <div class="unit-pill on" data-unit="IF3" onclick="toggleUnit(this)">IF3 · Underwriting</div>
+      <div class="unit-pill on" data-unit="IF4" onclick="toggleUnit(this)">IF4 · Claims Handling</div>
+    </div>
+  </div>
+
+  <div class="q-count-row">
+    <span class="count-label">Questions per session:</span>
+    <div class="count-btns">
+      <div class="count-btn" data-n="10" onclick="selectCount(this)">10</div>
+      <div class="count-btn on" data-n="20" onclick="selectCount(this)">20</div>
+      <div class="count-btn" data-n="30" onclick="selectCount(this)">30</div>
+      <div class="count-btn" data-n="50" onclick="selectCount(this)">50</div>
+    </div>
+  </div>
+
+  <button class="btn-start" onclick="beginSession()">Start Session →</button>
+
+  <div class="stats-home" id="stats-home">
+    <div class="stat-home">
+      <span class="stat-num" id="stat-attempted">0</span>
+      <span class="stat-name">Attempted</span>
+    </div>
+    <div class="stat-home">
+      <span class="stat-num" id="stat-correct">0%</span>
+      <span class="stat-name">Accuracy</span>
+    </div>
+    <div class="stat-home">
+      <span class="stat-num" id="stat-sessions">0</span>
+      <span class="stat-name">Sessions</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ EXAM ══ -->
+<div id="exam">
+  <div class="exam-topbar">
+    <div class="topbar-left">
+      <div class="unit-tag" id="topbar-unit">IF1</div>
+      <div class="q-indicator" id="topbar-q">Q1 of 20</div>
+    </div>
+    <div class="topbar-center">
+      <div class="progress-fill" id="prog-fill"></div>
+    </div>
+    <div class="topbar-right">
+      <div class="score-badge" id="topbar-score">0 / 0</div>
+      <div class="prefetch-status">
+        <div class="prefetch-dot" id="prefetch-dot"></div>
+        <span id="prefetch-label">ready</span>
+      </div>
+      <button class="btn-quit" onclick="confirmQuit()">✕ Quit</button>
+    </div>
+  </div>
+
+  <div class="question-wrap" id="question-wrap">
+    <!-- Rendered dynamically -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ RESULTS ══ -->
+<div id="results">
+  <div class="results-inner">
+
+    <div class="results-hero">
+      <div class="score-display">
+        <div class="score-circle" id="score-circle">
+          <svg class="score-svg" viewBox="0 0 150 150">
+            <circle class="score-track" cx="75" cy="75" r="65"/>
+            <circle class="score-fill" id="score-arc" cx="75" cy="75" r="65"
+              stroke-dasharray="408" stroke-dashoffset="408"/>
+          </svg>
+          <div class="score-inner-text">
+            <div class="score-big" id="res-pct">0%</div>
+            <div class="score-small">Score</div>
+          </div>
+        </div>
+        <div class="verdict" id="res-verdict">—</div>
+        <div class="verdict-sub" id="res-sub"></div>
+      </div>
+      <div class="results-chips" id="res-chips"></div>
+    </div>
+
+    <div class="review-header">
+      <div class="review-title">Answer Review</div>
+      <div class="filter-pills">
+        <div class="filter-pill on" data-filter="all" onclick="filterReview(this)">All</div>
+        <div class="filter-pill" data-filter="wrong" onclick="filterReview(this)">Wrong</div>
+        <div class="filter-pill" data-filter="correct" onclick="filterReview(this)">Correct</div>
+        <div class="filter-pill" data-filter="skipped" onclick="filterReview(this)">Skipped</div>
+      </div>
+    </div>
+
+    <div id="review-list"></div>
+
+    <div class="results-actions">
+      <button class="btn-secondary" onclick="retake()">↺ Retake</button>
+      <button class="btn-start" style="max-width:220px" onclick="goHome()">⌂ New Session</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+
+let CFG = {
+  mode: 'exam',
+  units: ['IF1','IF3','IF4'],
+  total: 20
+};
+
+let SESSION = {
+  questions: [],       // [{unit, stem, options:[], answer:int, difficulty}]
+  answers: [],         // [{selected: int|null, skipped: bool}]
+  current: 0,
+  correctSoFar: 0,
+  wrongTopics: []      // track weak spots
+};
+
+let BUFFER = [];       // prefetched questions
+let FETCHING = false;
+let HISTORY_TOPICS = new Set(); // avoid repetition
+let LIFETIME = JSON.parse(localStorage.getItem('cii_lifetime')||'{"attempted":0,"correct":0,"sessions":0,"weakTopics":[]}');
+
+// ═══════════════════════════════════════════════════════════
+//  HOME CONTROLS
+// ═══════════════════════════════════════════════════════════
+
+function selectMode(el) {
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  CFG.mode = el.dataset.mode;
+}
+
+function toggleUnit(el) {
+  el.classList.toggle('on');
+  CFG.units = [...document.querySelectorAll('.unit-pill.on')].map(p => p.dataset.unit);
+}
+
+function selectCount(el) {
+  document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  CFG.total = parseInt(el.dataset.n);
+}
+
+function updateHomeStats() {
+  document.getElementById('stat-attempted').textContent = LIFETIME.attempted;
+  const acc = LIFETIME.attempted ? Math.round((LIFETIME.correct/LIFETIME.attempted)*100) : 0;
+  document.getElementById('stat-correct').textContent = acc + '%';
+  document.getElementById('stat-sessions').textContent = LIFETIME.sessions;
+}
+
+updateHomeStats();
+
+// ═══════════════════════════════════════════════════════════
+//  QUESTION GENERATION
+// ═══════════════════════════════════════════════════════════
+
+const UNIT_TOPICS = {
+  IF1: [
+    'insurable interest', 'utmost good faith', 'material disclosure', 'proximate cause',
+    'indemnity principle', 'subrogation rights', 'contribution between insurers',
+    'Insurance Act 2015', 'FCA regulation', 'PRA regulation', 'Lloyd\'s market structure',
+    'types of insurance intermediaries', 'Consumer Duty', 'Treating Customers Fairly',
+    'policy conditions and warranties', 'offer and acceptance in insurance contracts',
+    'void and voidable contracts', 'misrepresentation in insurance',
+    'legal basis of tort', 'negligence and duty of care', 'contract of adhesion',
+    'financial ombudsman service', 'FSCS protection', 'IDD requirements',
+    'sanctions and money laundering obligations', 'policyholder rights at renewal',
+    'cancellation rights and cooling-off period', 'excess and deductibles',
+    'co-insurance clauses', 'average clause in property insurance'
+  ],
+  IF3: [
+    'risk assessment and rating factors', 'moral hazard vs physical hazard',
+    'adverse selection', 'underwriting cycle soft vs hard market',
+    'burning cost calculations', 'experience rating', 'portfolio management',
+    'quota share reinsurance', 'surplus reinsurance', 'excess of loss reinsurance',
+    'facultative reinsurance', 'treaty reinsurance', 'combined ratio',
+    'loss ratio and expense ratio', 'property underwriting sum insured',
+    'business interruption underwriting', 'liability underwriting',
+    'motor underwriting rating', 'marine cargo underwriting',
+    'employers liability compulsory insurance', 'public liability',
+    'professional indemnity', 'directors and officers liability',
+    'cyber insurance underwriting', 'parametric insurance',
+    'Lloyd\'s syndicate underwriting', 'delegated underwriting authority',
+    'flood risk assessment', 'catastrophe modelling',
+    'premium adequacy testing', 'underwriting profit margin'
+  ],
+  IF4: [
+    'first notification of loss FNOL', 'claims reserving and IBNR',
+    'loss adjuster role and appointment', 'loss assessor policyholder advocate',
+    'betterment in property claims', 'subrogation in claims recovery',
+    'contribution in claims handling', 'motor claims total loss',
+    'third party liability claims', 'MIB uninsured drivers scheme',
+    'Third Parties Rights Against Insurers Act 2010', 'without prejudice negotiation',
+    'ex gratia payments', 'claims fraud indicators', 'Fraud Act 2006',
+    'business interruption indemnity period', 'quantum of damages',
+    'general damages and special damages', 'Ogden tables',
+    'rehabilitation in personal injury claims', 'credit hire claims',
+    'whiplash reform legislation', 'small claims portal',
+    'claims inflation drivers', 'reinsurance recovery in claims',
+    'coverage disputes and policy interpretation', 'arbitration in insurance disputes',
+    'complaints handling and FCA rules', 'TCF in claims', 'digital claims technology'
+  ]
+};
+
+function pickTopicsForBatch(unit, count=5) {
+  const pool = UNIT_TOPICS[unit].filter(t => !HISTORY_TOPICS.has(`${unit}:${t}`));
+  const picked = pool.length >= count
+    ? pool.sort(()=>Math.random()-0.5).slice(0,count)
+    : [...pool, ...UNIT_TOPICS[unit].sort(()=>Math.random()-0.5)].slice(0,count);
+  picked.forEach(t => HISTORY_TOPICS.add(`${unit}:${t}`));
+  if (HISTORY_TOPICS.size > UNIT_TOPICS[unit].length * 3) {
+    // Reset if we've cycled through everything
+    UNIT_TOPICS[unit].forEach(t => HISTORY_TOPICS.delete(`${unit}:${t}`));
+  }
+  return picked;
+}
+
+async function generateBatch(units, count=5) {
+  const unitStr = units.join(', ');
+  // Pick a random unit weighted by selection and grab topics
+  const unit = units[Math.floor(Math.random()*units.length)];
+  const topics = pickTopicsForBatch(unit, Math.min(count, 5));
+
+  const weakMode = CFG.mode === 'weakspot' && LIFETIME.weakTopics.length > 0;
+  const weakContext = weakMode
+    ? `The candidate has previously struggled with: ${LIFETIME.weakTopics.slice(0,5).join(', ')}. Bias questions toward these areas.`
+    : '';
+
+  const prompt = `You are an expert CII (Chartered Insurance Institute) examiner writing questions for the ${unit} unit of the Cert CII qualification.
+
+Generate exactly ${count} multiple-choice questions. Each must:
+- Closely replicate authentic CII exam style: clear, unambiguous stem ending in a question or incomplete sentence
+- Have exactly 4 options (A-D), only ONE correct
+- Cover these topics (spread across them): ${topics.join(', ')}
+- Vary difficulty: mix easy (definitions), medium (application), hard (nuanced scenarios)
+- Never use trick wording — be fair but challenging
+- For IF1: focus on UK legal/regulatory framework
+- For IF3: focus on underwriting principles, rating, reinsurance
+- For IF4: focus on claims process, law, and practice
+${weakContext}
+
+Respond ONLY with a valid JSON array, no markdown, no preamble:
+[
+  {
+    "unit": "${unit}",
+    "topic": "topic name",
+    "difficulty": "easy|medium|hard",
+    "stem": "Question text here?",
+    "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
+    "answer": 0,
+    "explanation": "Clear 2-3 sentence explanation of why the correct answer is right and why common wrong answers are wrong."
+  }
+]`;
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  const data = await response.json();
+  const raw = data.content?.map(c=>c.text||'').join('') || '[]';
+
+  // Strip any accidental markdown
+  const clean = raw.replace(/```json|```/g,'').trim();
+  const parsed = JSON.parse(clean);
+
+  // Validate
+  return parsed.filter(q =>
+    q.stem && Array.isArray(q.options) && q.options.length === 4
+    && typeof q.answer === 'number' && q.explanation
+  );
+}
+
+async function fillBuffer() {
+  if (FETCHING || BUFFER.length >= 8) return;
+  FETCHING = true;
+  setPrefetch('loading', 'generating…');
+  try {
+    const batch = await generateBatch(CFG.units, 5);
+    BUFFER.push(...batch);
+    setPrefetch('ready', `${BUFFER.length} queued`);
+  } catch(e) {
+    console.error('Prefetch failed', e);
+    setPrefetch('empty', 'retry…');
+  }
+  FETCHING = false;
+}
+
+function setPrefetch(state, label) {
+  const dot = document.getElementById('prefetch-dot');
+  const lbl = document.getElementById('prefetch-label');
+  dot.className = 'prefetch-dot ' + state;
+  lbl.textContent = label;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SESSION START
+// ═══════════════════════════════════════════════════════════
+
+async function beginSession() {
+  if (!CFG.units.length) { showToast('Select at least one unit'); return; }
+
+  BUFFER = [];
+  HISTORY_TOPICS.clear();
+  SESSION = { questions: [], answers: [], current: 0, correctSoFar: 0 };
+
+  show('exam');
+  renderLoading('Generating your first questions…', 'This takes a few seconds — questions are crafted fresh each session.');
+
+  try {
+    const firstBatch = await generateBatch(CFG.units, 5);
+    BUFFER.push(...firstBatch);
+    // Kick off more in background
+    fillBuffer();
+    nextQuestion();
+  } catch(e) {
+    renderError('Failed to generate questions. Check your connection and try again.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EXAM FLOW
+// ═══════════════════════════════════════════════════════════
+
+async function nextQuestion() {
+  const qNum = SESSION.questions.length;
+
+  if (qNum >= CFG.total) {
+    showResults();
+    return;
+  }
+
+  // Ensure buffer has a question
+  if (BUFFER.length === 0) {
+    renderLoading('Generating more questions…', 'One moment…');
+    let attempts = 0;
+    while (BUFFER.length === 0 && attempts < 15) {
+      if (!FETCHING) fillBuffer();
+      await sleep(600);
+      attempts++;
+    }
+    if (BUFFER.length === 0) {
+      renderError('Could not fetch next question. Please retry.');
+      return;
+    }
+  }
+
+  const q = BUFFER.shift();
+  SESSION.questions.push(q);
+  SESSION.answers.push({ selected: null, skipped: false });
+
+  // Prefetch more in background
+  if (BUFFER.length < 4 && !FETCHING) fillBuffer();
+
+  renderQuestion(q, qNum);
+}
+
+function renderQuestion(q, idx) {
+  const total = CFG.total;
+  const letters = ['A','B','C','D'];
+
+  document.getElementById('topbar-unit').textContent = q.unit;
+  document.getElementById('topbar-q').textContent = `Q${idx+1} of ${total}`;
+  document.getElementById('prog-fill').style.width = `${(idx/total)*100}%`;
+  document.getElementById('topbar-score').textContent =
+    `${SESSION.correctSoFar} / ${idx}`;
+
+  const diffClass = { easy:'diff-easy', medium:'diff-medium', hard:'diff-hard' }[q.difficulty] || 'diff-medium';
+
+  const wrap = document.getElementById('question-wrap');
+  wrap.innerHTML = `
+    <div class="q-meta">
+      <span class="q-num">Q${idx+1}</span>
+      <span class="difficulty-dot ${diffClass}"></span>
+      <span class="diff-label">${q.difficulty||'medium'}</span>
+      <span class="q-num" style="margin-left:6px">· ${q.unit}</span>
+    </div>
+    <div class="question-stem">${q.stem}</div>
+    <div class="options" id="opts">
+      ${q.options.map((opt,i) => `
+        <button class="option" data-i="${i}" onclick="selectAnswer(${i})">
+          <span class="opt-letter">${letters[i]}</span>
+          <span>${opt}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div class="explanation-panel" id="exp-panel">
+      <div class="exp-header-row">
+        <span class="exp-icon">💡</span>
+        <span class="exp-title">Explanation</span>
+      </div>
+      <div class="exp-text" id="exp-text">
+        <div class="exp-loading"><div class="pulse-dot"></div> Loading…</div>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="btn-skip" onclick="skipCurrent()">Skip →</button>
+      <button class="btn-next" id="btn-next" onclick="confirmNext()" disabled>
+        ${idx+1 >= CFG.total ? 'Finish Exam' : 'Next Question'} →
+      </button>
+    </div>
+  `;
+}
+
+function selectAnswer(i) {
+  const q = SESSION.questions[SESSION.current];
+  const ans = SESSION.answers[SESSION.current];
+  if (ans.selected !== null || ans.skipped) return;
+
+  ans.selected = i;
+  const correct = i === q.answer;
+  if (correct) SESSION.correctSoFar++;
+
+  // Track weak topics
+  if (!correct) {
+    const topic = q.topic || q.unit;
+    if (!LIFETIME.weakTopics.includes(topic)) {
+      LIFETIME.weakTopics.unshift(topic);
+      if (LIFETIME.weakTopics.length > 20) LIFETIME.weakTopics.pop();
+    }
+  }
+
+  // Lock + colour options
+  document.querySelectorAll('.option').forEach((btn, idx) => {
+    btn.classList.add('locked');
+    if (idx === q.answer) btn.classList.add('correct');
+    else if (idx === i && !correct) btn.classList.add('wrong');
+    else btn.classList.add('dimmed');
+  });
+
+  document.getElementById('topbar-score').textContent =
+    `${SESSION.correctSoFar} / ${SESSION.current+1}`;
+
+  // Show explanation
+  if (CFG.mode === 'practice' || true) { // always show in exam too after answer
+    const panel = document.getElementById('exp-panel');
+    panel.style.display = 'block';
+    document.getElementById('exp-text').textContent = q.explanation;
+  }
+
+  document.getElementById('btn-next').disabled = false;
+}
+
+function skipCurrent() {
+  SESSION.answers[SESSION.current].skipped = true;
+  SESSION.answers[SESSION.current].selected = null;
+  advanceQuestion();
+}
+
+function confirmNext() {
+  advanceQuestion();
+}
+
+function advanceQuestion() {
+  SESSION.current++;
+  nextQuestion();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RESULTS
+// ═══════════════════════════════════════════════════════════
+
+function showResults() {
+  LIFETIME.sessions++;
+  const total = SESSION.questions.length;
+  const correct = SESSION.correctSoFar;
+  const skipped = SESSION.answers.filter(a => a.skipped).length;
+  const wrong = total - correct - skipped;
+  const pct = total ? Math.round((correct/total)*100) : 0;
+
+  LIFETIME.attempted += total;
+  LIFETIME.correct += correct;
+  localStorage.setItem('cii_lifetime', JSON.stringify(LIFETIME));
+
+  show('results');
+
+  // Score circle
+  const arc = document.getElementById('score-arc');
+  const circumference = 408;
+  const passed = pct >= 65;
+  arc.style.stroke = passed ? '#34d399' : (pct >= 50 ? '#d4af37' : '#f87171');
+  setTimeout(() => {
+    arc.style.strokeDashoffset = circumference - (pct/100)*circumference;
+  }, 200);
+
+  document.getElementById('res-pct').textContent = pct + '%';
+  document.getElementById('res-verdict').textContent =
+    pct >= 80 ? 'Exam Ready ✦' :
+    pct >= 65 ? 'Pass — Keep Going' :
+    pct >= 50 ? 'Nearly There' : 'More Revision Needed';
+  document.getElementById('res-sub').textContent =
+    `CII pass mark ≈ 65%. ${passed ? 'You\'re on track for the real exam.' : 'Review the explanations below and drill weak areas.'}`;
+
+  document.getElementById('res-chips').innerHTML = `
+    <div class="chip ${passed?'pass-chip':'fail-chip'}">${passed?'PASS':'BELOW PASS'}</div>
+    <div class="chip">✓ <strong>${correct}</strong> Correct</div>
+    <div class="chip">✗ <strong>${wrong}</strong> Wrong</div>
+    <div class="chip">— <strong>${skipped}</strong> Skipped</div>
+    <div class="chip">📋 <strong>${total}</strong> Total</div>
+  `;
+
+  buildReviewList('all');
+}
+
+function buildReviewList(filter) {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+  const letters = ['A','B','C','D'];
+
+  SESSION.questions.forEach((q, i) => {
+    const a = SESSION.answers[i];
+    const isCorrect = a.selected === q.answer;
+    const isSkipped = a.skipped || a.selected === null;
+    const status = isSkipped ? 'skipped' : (isCorrect ? 'correct' : 'wrong');
+
+    if (filter !== 'all' && filter !== status) return;
+
+    const card = document.createElement('div');
+    card.className = `review-card ${status}`;
+
+    const icon = isSkipped ? '—' : (isCorrect ? '✓' : '✗');
+    const yourAnswer = isSkipped ? 'Skipped' : q.options[a.selected];
+    const correctAnswer = q.options[q.answer];
+
+    card.innerHTML = `
+      <div class="review-card-header" onclick="toggleReview(this)">
+        <div class="rv-icon ${status}">${icon}</div>
+        <div class="rv-q">
+          <div class="rv-unit">${q.unit} · ${q.topic||''}</div>
+          ${q.stem}
+        </div>
+        <div class="rv-chevron">▾</div>
+      </div>
+      <div class="review-card-body">
+        <div class="answer-tags">
+          <span class="answer-tag tag-yours ${isCorrect?'correct':''}">
+            Your answer: ${isSkipped ? '—' : yourAnswer}
+          </span>
+          ${!isCorrect && !isSkipped ? `<span class="answer-tag tag-correct">Correct: ${correctAnswer}</span>` : ''}
+        </div>
+        <div class="review-explanation">${q.explanation}</div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  if (!list.children.length) {
+    list.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:32px;font-size:0.9rem;">No questions in this category.</div>';
+  }
+}
+
+function filterReview(el) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  buildReviewList(el.dataset.filter);
+}
+
+function toggleReview(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.rv-chevron');
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════════
+
+function renderLoading(msg, sub) {
+  document.getElementById('question-wrap').innerHTML = `
+    <div class="q-loading">
+      <div class="spinner"></div>
+      <div class="loading-text">${msg}</div>
+      <div class="loading-subtext">${sub}</div>
+    </div>
+  `;
+}
+
+function renderError(msg) {
+  document.getElementById('question-wrap').innerHTML = `
+    <div class="q-loading">
+      <div style="font-size:2rem">⚠️</div>
+      <div class="loading-text" style="color:var(--red)">${msg}</div>
+      <button class="btn-next" style="margin-top:16px" onclick="beginSession()">Retry</button>
+    </div>
+  `;
+}
+
+function show(id) {
+  ['home','exam','results'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+  if (id === 'home') document.getElementById('home').style.display = 'flex';
+  window.scrollTo(0,0);
+}
+
+// Initial display
+document.getElementById('exam').style.display = 'none';
+document.getElementById('results').style.display = 'none';
+
+function retake() {
+  beginSession();
+}
+
+function goHome() {
+  show('home');
+  updateHomeStats();
+}
+
+function confirmQuit() {
+  if (SESSION.questions.length > 0) {
+    if (confirm('Quit this session? Progress will be lost.')) showResults();
+  } else {
+    goHome();
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>

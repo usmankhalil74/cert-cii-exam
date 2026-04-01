@@ -3,1536 +3,298 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cert CII · Unlimited Question Engine</title>
+<title>Cert CII · Mock Exam</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0c0f14;
-  --surface: #13181f;
-  --surface2: #1a2030;
-  --border: rgba(255,255,255,0.07);
-  --border-gold: rgba(212,175,55,0.35);
-  --gold: #d4af37;
-  --gold-bright: #f0cc5a;
-  --gold-dim: rgba(212,175,55,0.15);
-  --text: #e8e4dc;
-  --text-muted: #7a8499;
-  --text-dim: #4a5568;
-  --green: #34d399;
-  --green-bg: rgba(52,211,153,0.08);
-  --red: #f87171;
-  --red-bg: rgba(248,113,113,0.08);
-  --blue: #60a5fa;
-  --r: 12px;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Outfit', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  line-height: 1.6;
-}
-
-/* Subtle grid bg */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(212,175,55,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212,175,55,0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ── LAYOUT ── */
-.app { position: relative; z-index: 1; }
-
-/* ── HOME ── */
-#home {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-}
-
-.home-glow {
-  position: fixed;
-  top: -200px; left: 50%;
-  transform: translateX(-50%);
-  width: 700px; height: 500px;
-  background: radial-gradient(ellipse, rgba(212,175,55,0.07) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.cii-crest {
-  width: 64px; height: 64px;
-  border: 2px solid var(--gold);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 1.4rem;
-  color: var(--gold);
-  margin-bottom: 32px;
-  position: relative;
-}
-
-.cii-crest::before {
-  content: '';
-  position: absolute; inset: -6px;
-  border: 1px solid var(--border-gold);
-  border-radius: 50%;
-}
-
-h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(2rem, 5vw, 3.6rem);
-  font-weight: 700;
-  text-align: center;
-  line-height: 1.15;
-  margin-bottom: 16px;
-  color: var(--text);
-}
-
-h1 .accent { color: var(--gold); font-style: italic; }
-
-.tagline {
-  color: var(--text-muted);
-  font-size: 1rem;
-  font-weight: 300;
-  text-align: center;
-  max-width: 460px;
-  margin-bottom: 56px;
-  line-height: 1.8;
-}
-
-/* Mode selector */
-.mode-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  width: 100%;
-  max-width: 780px;
-  margin-bottom: 32px;
-}
-
-.mode-card {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r);
-  padding: 24px 20px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  text-align: left;
-  position: relative;
-  overflow: hidden;
-}
-
-.mode-card::before {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.mode-card:hover, .mode-card.active {
-  border-color: var(--border-gold);
-  background: var(--surface2);
-  transform: translateY(-2px);
-}
-.mode-card.active::before, .mode-card:hover::before { opacity: 1; }
-
-.mode-icon { font-size: 1.6rem; margin-bottom: 12px; }
-.mode-title { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-.mode-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
-
-.active-dot {
-  position: absolute; top: 14px; right: 14px;
-  width: 8px; height: 8px;
-  background: var(--gold);
-  border-radius: 50%;
-  display: none;
-}
-.mode-card.active .active-dot { display: block; }
-
-/* Unit selector */
-.unit-section { width: 100%; max-width: 780px; margin-bottom: 32px; }
-.section-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
-.unit-pills {
-  display: flex; gap: 10px; flex-wrap: wrap;
-}
-
-.unit-pill {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 100px;
-  padding: 8px 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--text-muted);
-  user-select: none;
-}
-
-.unit-pill:hover { border-color: var(--border-gold); color: var(--text); }
-.unit-pill.on { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
-
-/* Q count */
-.q-count-row {
-  display: flex; align-items: center; gap: 16px;
-  width: 100%; max-width: 780px;
-  margin-bottom: 40px;
-}
-
-.count-label { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; }
-
-.count-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-
-.count-btn {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 7px 18px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--text-muted);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.count-btn:hover { border-color: var(--border-gold); color: var(--text); }
-.count-btn.on { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
-
-.btn-start {
-  background: linear-gradient(135deg, #b8962e, var(--gold-bright));
-  color: #0c0f14;
-  border: none;
-  padding: 16px 56px;
-  border-radius: 10px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s;
-  letter-spacing: 0.03em;
-  width: 100%;
-  max-width: 320px;
-}
-
-.btn-start:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(212,175,55,0.3);
-}
-
-.btn-start:disabled { opacity: 0.35; cursor: not-allowed; }
-
-/* Stats bar on home */
-.stats-home {
-  display: flex; gap: 32px; margin-top: 48px;
-  flex-wrap: wrap; justify-content: center;
-}
-
-.stat-home {
-  text-align: center;
-}
-
-.stat-num {
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem;
-  color: var(--gold);
-  display: block;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.stat-name {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-/* ── EXAM SCREEN ── */
-#exam { display: none; min-height: 100vh; padding-bottom: 60px; }
-
-.exam-topbar {
-  position: sticky; top: 0; z-index: 50;
-  background: rgba(12,15,20,0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 32px;
-  height: 58px;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 20px;
-}
-
-.topbar-left { display: flex; align-items: center; gap: 16px; }
-
-.unit-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.15em;
-  color: var(--gold);
-  background: var(--gold-dim);
-  border: 1px solid var(--border-gold);
-  padding: 4px 12px;
-  border-radius: 100px;
-}
-
-.q-indicator {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.topbar-center {
-  flex: 1; max-width: 400px;
-  height: 3px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
-  border-radius: 2px;
-  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-  width: 0%;
-}
-
-.topbar-right { display: flex; align-items: center; gap: 12px; }
-
-.score-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.btn-quit {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
-}
-.btn-quit:hover { border-color: var(--red); color: var(--red); }
-
-/* Question area */
-.question-wrap {
-  max-width: 780px;
-  margin: 0 auto;
-  padding: 48px 24px 0;
-}
-
-/* Loading state */
-.q-loading {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding: 80px 0; gap: 20px;
-}
-
-.spinner {
-  width: 44px; height: 44px;
-  border: 2px solid var(--border);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.loading-text {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.loading-subtext {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  text-align: center;
-  max-width: 300px;
-}
-
-/* Question card */
-.q-meta {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-}
-
-.q-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-}
-
-.difficulty-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-}
-.diff-easy { background: var(--green); }
-.diff-medium { background: var(--gold); }
-.diff-hard { background: var(--red); }
-
-.diff-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.question-stem {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.2rem, 2.5vw, 1.55rem);
-  font-weight: 600;
-  line-height: 1.55;
-  color: var(--text);
-  margin-bottom: 36px;
-}
-
-/* Options */
-.options { display: flex; flex-direction: column; gap: 11px; margin-bottom: 36px; }
-
-.option {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 15px 18px;
-  cursor: pointer;
-  display: flex; align-items: center; gap: 15px;
-  transition: all 0.18s ease;
-  text-align: left;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.95rem;
-  color: var(--text);
-  line-height: 1.5;
-  position: relative;
-  overflow: hidden;
-}
-
-.option::before {
-  content: '';
-  position: absolute; inset: 0;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.option:hover:not(.locked) {
-  border-color: rgba(212,175,55,0.4);
-  background: var(--surface2);
-}
-
-.opt-letter {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--gold);
-  background: var(--gold-dim);
-  border: 1px solid rgba(212,175,55,0.2);
-  width: 30px; height: 30px;
-  border-radius: 7px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s;
-}
-
-.option.selected { border-color: var(--gold); background: rgba(212,175,55,0.06); }
-.option.selected .opt-letter { background: var(--gold); color: var(--bg); border-color: var(--gold); }
-
-.option.correct {
-  border-color: var(--green);
-  background: var(--green-bg);
-}
-.option.correct .opt-letter { background: var(--green); color: var(--bg); border-color: var(--green); }
-
-.option.wrong {
-  border-color: var(--red);
-  background: var(--red-bg);
-}
-.option.wrong .opt-letter { background: var(--red); color: #fff; border-color: var(--red); }
-
-.option.locked { cursor: default; }
-.option.dimmed { opacity: 0.4; }
-
-/* Explanation panel */
-.explanation-panel {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--gold);
-  border-radius: var(--r);
-  padding: 20px 22px;
-  margin-bottom: 32px;
-  display: none;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.exp-header-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
-}
-
-.exp-icon {
-  font-size: 1rem;
-}
-
-.exp-title {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.15em;
-  color: var(--gold);
-  text-transform: uppercase;
-}
-
-.exp-text {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.8;
-  min-height: 40px;
-}
-
-.exp-text .exp-loading {
-  display: flex; align-items: center; gap: 8px;
-  color: var(--text-dim);
-  font-style: italic;
-}
-
-.pulse-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--gold);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1); }
-}
-
-/* Action row */
-.action-row {
-  display: flex; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 12px;
-}
-
-.btn-skip {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  padding: 11px 24px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
-}
-.btn-skip:hover { border-color: var(--border-gold); color: var(--text-muted); }
-
-.btn-next {
-  background: linear-gradient(135deg, #b8962e, var(--gold-bright));
-  color: var(--bg);
-  border: none;
-  padding: 12px 36px;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: 'Outfit', sans-serif;
-  display: flex; align-items: center; gap: 8px;
-}
-.btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,55,0.3); }
-.btn-next:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
-
-/* Prefetch indicator */
-.prefetch-status {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--text-dim);
-  display: flex; align-items: center; gap: 6px;
-}
-
-.prefetch-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--green);
-  animation: pulse 2s infinite;
-}
-
-.prefetch-dot.loading { background: var(--gold); }
-.prefetch-dot.empty { background: var(--text-dim); animation: none; }
-
-/* ── RESULTS ── */
-#results { display: none; min-height: 100vh; padding: 48px 24px 80px; }
-
-.results-inner { max-width: 860px; margin: 0 auto; }
-
-.results-hero {
-  text-align: center;
-  padding: 56px 24px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  margin-bottom: 40px;
-  position: relative;
-  overflow: hidden;
-}
-
-.results-hero::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-}
-
-.score-display {
-  display: flex; flex-direction: column; align-items: center; margin-bottom: 28px;
-}
-
-.score-circle {
-  width: 150px; height: 150px;
-  border-radius: 50%;
-  position: relative;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 24px;
-}
-
-.score-svg {
-  position: absolute; inset: 0;
-  transform: rotate(-90deg);
-}
-
-.score-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8; }
-.score-fill {
-  fill: none;
-  stroke-width: 8;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
-}
-
-.score-inner-text {
-  display: flex; flex-direction: column; align-items: center; z-index: 1;
-}
-
-.score-big {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.4rem;
-  color: var(--text);
-  line-height: 1;
-}
-
-.score-small {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--text-dim);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-
-.verdict {
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-
-.verdict-sub { color: var(--text-muted); font-size: 0.9rem; }
-
-.results-chips {
-  display: flex; gap: 12px; justify-content: center; margin-top: 28px; flex-wrap: wrap;
-}
-
-.chip {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  padding: 8px 20px;
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-.chip strong { color: var(--text); }
-
-.pass-chip { border-color: var(--green); color: var(--green); background: var(--green-bg); }
-.fail-chip { border-color: var(--red); color: var(--red); background: var(--red-bg); }
-
-/* Review section */
-.review-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
-}
-
-.review-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem;
-  color: var(--text);
-}
-
-.filter-pills { display: flex; gap: 8px; }
-
-.filter-pill {
-  padding: 5px 14px;
-  border-radius: 100px;
-  font-size: 0.78rem;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  cursor: pointer;
-  transition: all 0.2s;
-  color: var(--text-muted);
-  font-family: 'Outfit', sans-serif;
-}
-
-.filter-pill:hover { border-color: var(--border-gold); color: var(--text); }
-.filter-pill.on { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
-
-/* Review cards */
-.review-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 12px;
-  overflow: hidden;
-  transition: border-color 0.2s;
-}
-
-.review-card.correct { border-left: 3px solid var(--green); }
-.review-card.wrong { border-left: 3px solid var(--red); }
-.review-card.skipped { border-left: 3px solid var(--text-dim); }
-
-.review-card-header {
-  padding: 16px 20px;
-  display: flex; align-items: flex-start; gap: 14px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.rv-icon {
-  width: 26px; height: 26px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; flex-shrink: 0; margin-top: 1px;
-}
-
-.rv-icon.correct { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
-.rv-icon.wrong { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
-.rv-icon.skipped { background: rgba(255,255,255,0.04); color: var(--text-dim); border: 1px solid var(--border); }
-
-.rv-q { flex: 1; font-size: 0.9rem; color: var(--text); line-height: 1.5; }
-.rv-unit { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); margin-bottom: 4px; }
-.rv-chevron { color: var(--text-dim); transition: transform 0.3s; flex-shrink: 0; font-size: 0.9rem; }
-.rv-chevron.open { transform: rotate(180deg); }
-
-.review-card-body {
-  display: none;
-  padding: 0 20px 20px 60px;
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.review-card-body.open { display: block; }
-
-.answer-tags { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-
-.answer-tag {
-  font-size: 0.78rem;
-  padding: 4px 12px;
-  border-radius: 100px;
-  border: 1px solid transparent;
-}
-
-.tag-yours { background: var(--red-bg); color: var(--red); border-color: rgba(248,113,113,0.3); }
-.tag-yours.correct { background: var(--green-bg); color: var(--green); border-color: rgba(52,211,153,0.3); }
-.tag-correct { background: var(--green-bg); color: var(--green); border-color: rgba(52,211,153,0.3); }
-
-.review-explanation {
-  font-size: 0.87rem;
-  color: var(--text-muted);
-  line-height: 1.8;
-  background: rgba(0,0,0,0.25);
-  border-radius: 8px;
-  padding: 14px 16px;
-}
-
-.results-actions {
-  display: flex; gap: 12px; justify-content: center;
-  margin-top: 40px; flex-wrap: wrap;
-}
-
-.btn-secondary {
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  color: var(--text-muted);
-  padding: 13px 32px;
-  border-radius: 9px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-secondary:hover { border-color: var(--border-gold); color: var(--text); }
-
-/* Toast */
-.toast {
-  position: fixed; bottom: 24px; right: 24px;
-  background: var(--surface2);
-  border: 1px solid var(--border-gold);
-  border-radius: 10px;
-  padding: 12px 20px;
-  font-size: 0.85rem;
-  color: var(--text);
-  z-index: 999;
-  animation: toastIn 0.3s ease;
-  display: none;
-}
-
-@keyframes toastIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .exam-topbar { padding: 0 16px; }
-  .topbar-center { display: none; }
-  .question-wrap { padding: 28px 16px 0; }
-  .question-stem { font-size: 1.15rem; }
-  h1 { font-size: 1.9rem; }
-}
+:root{--bg:#0c0f14;--sur:#13181f;--sur2:#1a2030;--bdr:rgba(255,255,255,0.07);--bdg:rgba(212,175,55,0.3);--gld:#d4af37;--glb:#f0cc5a;--gdm:rgba(212,175,55,0.12);--txt:#e8e4dc;--mut:#7a8499;--dim:#3a4558;--grn:#34d399;--gbg:rgba(52,211,153,0.08);--red:#f87171;--rbg:rgba(248,113,113,0.08);--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;line-height:1.6}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(212,175,55,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,0.025) 1px,transparent 1px);background-size:64px 64px;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1}
+#home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.glow{position:fixed;top:-180px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(212,175,55,0.06) 0%,transparent 70%);pointer-events:none}
+.crest{width:60px;height:60px;border:2px solid var(--gld);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--gld);margin:0 auto 28px;position:relative}
+.crest::before{content:'';position:absolute;inset:-6px;border:1px solid var(--bdg);border-radius:50%}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.4rem);font-weight:700;line-height:1.15;margin-bottom:14px}
+h1 em{color:var(--gld);font-style:italic}
+.tag{font-size:0.9rem;color:var(--mut);max-width:440px;margin:0 auto 48px;line-height:1.8;font-weight:300}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;width:100%;max-width:740px;margin-bottom:28px}
+.card{background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--r);padding:22px 18px;cursor:pointer;transition:all .22s;text-align:left;position:relative;overflow:hidden}
+.card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gld),transparent);opacity:0;transition:opacity .3s}
+.card:hover,.card.on{border-color:var(--bdg);background:var(--sur2)}
+.card.on{border-color:var(--gld)}.card.on::after{opacity:1}
+.dot{position:absolute;top:12px;right:12px;width:8px;height:8px;background:var(--gld);border-radius:50%;display:none}
+.card.on .dot{display:block}
+.c-code{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--gld);margin-bottom:8px;letter-spacing:.1em}
+.c-name{font-size:.9rem;font-weight:500;color:var(--txt);line-height:1.4}
+.c-count{font-size:.72rem;color:var(--mut);margin-top:6px}
+.cnt-row{display:flex;align-items:center;gap:14px;width:100%;max-width:740px;margin-bottom:36px;flex-wrap:wrap;justify-content:center}
+.cnt-lbl{font-size:.82rem;color:var(--mut);white-space:nowrap}
+.cnts{display:flex;gap:8px;flex-wrap:wrap}
+.cnt{background:var(--sur);border:1.5px solid var(--bdr);border-radius:8px;padding:6px 16px;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s;color:var(--mut);font-family:'JetBrains Mono',monospace}
+.cnt:hover{border-color:var(--bdg);color:var(--txt)}.cnt.on{background:var(--gdm);border-color:var(--gld);color:var(--gld)}
+.btn-go{background:linear-gradient(135deg,#b8962e,var(--glb));color:#0c0f14;border:none;padding:15px 52px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .22s;width:100%;max-width:300px}
+.btn-go:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(212,175,55,0.28)}
+.stats-home{display:flex;gap:28px;margin-top:44px;flex-wrap:wrap;justify-content:center}
+.sh{text-align:center}
+.sh-n{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--gld);display:block;line-height:1;margin-bottom:3px}
+.sh-l{font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace}
+#exam{display:none;min-height:100vh;padding-bottom:60px}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(12,15,20,0.93);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.tb-l{display:flex;align-items:center;gap:14px}
+.utag{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.12em;color:var(--gld);background:var(--gdm);border:1px solid var(--bdg);padding:3px 10px;border-radius:100px}
+.qi{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--mut)}
+.tb-c{flex:1;max-width:380px;height:3px;background:var(--bdr);border-radius:2px;overflow:hidden}
+.pbar{height:100%;background:linear-gradient(90deg,var(--gld),var(--glb));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
+.tb-r{display:flex;align-items:center;gap:10px}
+.sc-badge{font-family:'JetBrains Mono',monospace;font-size:.73rem;color:var(--mut)}
+.btn-quit{background:transparent;border:1px solid var(--bdr);color:var(--dim);padding:5px 12px;border-radius:6px;font-size:.78rem;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.btn-quit:hover{border-color:var(--red);color:var(--red)}
+.qwrap{max-width:760px;margin:0 auto;padding:44px 22px 0}
+.qmeta{display:flex;align-items:center;gap:8px;margin-bottom:18px}
+.qnum{font-family:'JetBrains Mono',monospace;font-size:.73rem;color:var(--dim)}
+.ddot{width:6px;height:6px;border-radius:50%}
+.de{background:var(--grn)}.dm{background:var(--gld)}.dh{background:var(--red)}
+.dlbl{font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+.qstem{font-family:'Playfair Display',serif;font-size:clamp(1.15rem,2.5vw,1.5rem);font-weight:600;line-height:1.55;color:var(--txt);margin-bottom:32px}
+.opts{display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+.opt{background:var(--sur);border:1.5px solid var(--bdr);border-radius:10px;padding:14px 17px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all .17s;text-align:left;font-family:'Outfit',sans-serif;font-size:.93rem;color:var(--txt);line-height:1.5;width:100%}
+.opt:hover:not(.locked){border-color:rgba(212,175,55,0.35);background:var(--sur2)}
+.oltr{font-family:'JetBrains Mono',monospace;font-size:.73rem;color:var(--gld);background:var(--gdm);border:1px solid rgba(212,175,55,0.18);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.opt.sel{border-color:var(--gld);background:rgba(212,175,55,0.05)}.opt.sel .oltr{background:var(--gld);color:var(--bg);border-color:var(--gld)}
+.opt.cor{border-color:var(--grn);background:var(--gbg)}.opt.cor .oltr{background:var(--grn);color:var(--bg);border-color:var(--grn)}
+.opt.wrg{border-color:var(--red);background:var(--rbg)}.opt.wrg .oltr{background:var(--red);color:#fff;border-color:var(--red)}
+.opt.dim{opacity:.38}.opt.locked{cursor:default}
+.ep{background:var(--sur2);border:1px solid var(--bdr);border-left:3px solid var(--gld);border-radius:var(--r);padding:18px 20px;margin-bottom:28px;display:none;animation:sd .3s ease}
+@keyframes sd{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ep-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ep-ttl{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.14em;color:var(--gld);text-transform:uppercase}
+.ep-txt{font-size:.88rem;color:var(--mut);line-height:1.78}
+.act-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.btn-skip{background:transparent;border:1px solid var(--bdr);color:var(--dim);padding:10px 22px;border-radius:8px;font-size:.88rem;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.btn-skip:hover{border-color:var(--bdg);color:var(--mut)}
+.btn-nxt{background:linear-gradient(135deg,#b8962e,var(--glb));color:var(--bg);border:none;padding:11px 32px;border-radius:8px;font-size:.93rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.btn-nxt:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(212,175,55,0.28)}
+.btn-nxt:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none}
+#results{display:none;min-height:100vh;padding:44px 22px 80px}
+.ri{max-width:840px;margin:0 auto}
+.rhero{text-align:center;padding:48px 20px;background:var(--sur);border:1px solid var(--bdr);border-radius:16px;margin-bottom:36px;position:relative;overflow:hidden}
+.rhero::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gld),transparent)}
+.sc-circle{width:140px;height:140px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;margin:0 auto 22px}
+.sc-svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.sc-trk{fill:none;stroke:rgba(255,255,255,0.06);stroke-width:8}
+.sc-arc{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)}
+.sc-inner{display:flex;flex-direction:column;align-items:center;z-index:1}
+.sc-big{font-family:'Playfair Display',serif;font-size:2.3rem;color:var(--txt);line-height:1}
+.sc-sm{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.verdict{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--txt);margin-bottom:7px}
+.vsub{color:var(--mut);font-size:.88rem}
+.chips{display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,0.04);border:1px solid var(--bdr);border-radius:100px;padding:7px 18px;font-size:.8rem;color:var(--mut)}
+.chip strong{color:var(--txt)}.pass-c{border-color:var(--grn);color:var(--grn);background:var(--gbg)}.fail-c{border-color:var(--red);color:var(--red);background:var(--rbg)}
+.rv-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.rv-ttl{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--txt)}
+.fps{display:flex;gap:7px;flex-wrap:wrap}
+.fp{padding:4px 13px;border-radius:100px;font-size:.76rem;border:1px solid var(--bdr);background:var(--sur);cursor:pointer;transition:all .2s;color:var(--mut);font-family:'Outfit',sans-serif}
+.fp:hover{border-color:var(--bdg);color:var(--txt)}.fp.on{border-color:var(--gld);color:var(--gld);background:var(--gdm)}
+.rcard{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;margin-bottom:11px;overflow:hidden}
+.rcard.correct{border-left:3px solid var(--grn)}.rcard.wrong{border-left:3px solid var(--red)}.rcard.skipped{border-left:3px solid var(--dim)}
+.rcard-hdr{padding:15px 18px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none}
+.rv-ic{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px}
+.rv-ic.correct{background:var(--gbg);color:var(--grn);border:1px solid rgba(52,211,153,0.28)}
+.rv-ic.wrong{background:var(--rbg);color:var(--red);border:1px solid rgba(248,113,113,0.28)}
+.rv-ic.skipped{background:rgba(255,255,255,0.03);color:var(--dim);border:1px solid var(--bdr)}
+.rv-q{flex:1;font-size:.88rem;color:var(--txt);line-height:1.5}
+.rv-u{font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--dim);margin-bottom:3px}
+.rv-chv{color:var(--dim);transition:transform .3s;flex-shrink:0;font-size:.85rem}
+.rv-chv.open{transform:rotate(180deg)}
+.rcard-body{display:none;padding:14px 18px 18px 54px;border-top:1px solid var(--bdr)}
+.rcard-body.open{display:block}
+.atags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.atag{font-size:.76rem;padding:3px 11px;border-radius:100px;border:1px solid transparent}
+.ty{background:var(--rbg);color:var(--red);border-color:rgba(248,113,113,0.28)}
+.ty.cor{background:var(--gbg);color:var(--grn);border-color:rgba(52,211,153,0.28)}
+.tc{background:var(--gbg);color:var(--grn);border-color:rgba(52,211,153,0.28)}
+.rexp{font-size:.85rem;color:var(--mut);line-height:1.78;background:rgba(0,0,0,0.22);border-radius:8px;padding:13px 15px}
+.res-acts{display:flex;gap:11px;justify-content:center;margin-top:36px;flex-wrap:wrap}
+.btn-sec{background:var(--sur);border:1.5px solid var(--bdr);color:var(--mut);padding:12px 28px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.92rem;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-sec:hover{border-color:var(--bdg);color:var(--txt)}
+@media(max-width:600px){.topbar{padding:0 14px}.tb-c{display:none}.qwrap{padding:26px 15px 0}h1{font-size:1.85rem}.qstem{font-size:1.1rem}}
 </style>
 </head>
 <body>
 <div class="app">
-
-<!-- KEY ENTRY SCREEN -->
-<div id="keyscreen" style="display:none;position:fixed;inset:0;background:#0c0f14;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px;">
-  <div style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#d4af37;text-align:center;">API Key Required</div>
-  <div style="font-size:0.88rem;color:#7a8499;text-align:center;max-width:360px;line-height:1.7;">
-    Enter your Anthropic API key to power the question engine.<br>
-    It is stored only in your browser — never sent to any server except Anthropic.
-  </div>
-  <div style="width:100%;max-width:420px;">
-    <input id="key-input" type="password" placeholder="sk-ant-api03-..." 
-      style="width:100%;padding:14px 16px;background:#13181f;border:1.5px solid rgba(212,175,55,0.4);border-radius:10px;color:#e8e4dc;font-size:0.95rem;font-family:'Outfit',sans-serif;outline:none;"/>
-  </div>
-  <div style="font-size:0.78rem;color:#4a5568;text-align:center;">
-    Get a key at <strong style="color:#d4af37">console.anthropic.com</strong> → API Keys
-  </div>
-  <button onclick="submitKey()" style="background:linear-gradient(135deg,#b8962e,#f0cc5a);color:#0c0f14;border:none;padding:14px 48px;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;">
-    Start Studying →
-  </button>
-  <div id="key-error" style="color:#f87171;font-size:0.82rem;display:none;">Invalid key format. Should start with sk-ant-</div>
-</div>
-
-
-
-<!-- ════════════════════════════════════════ HOME ══ -->
 <div id="home">
-  <div class="home-glow"></div>
-
-  <div class="cii-crest">CII</div>
-
-  <h1>Unlimited <span class="accent">Cert CII</span><br>Question Engine</h1>
-  <p class="tagline">AI-generated questions that never repeat. Authentic CII style across IF1, IF3 and IF4. Study smarter.</p>
-
-  <div class="mode-grid">
-    <div class="mode-card active" data-mode="exam" onclick="selectMode(this)">
-      <div class="active-dot"></div>
-      <div class="mode-icon">📋</div>
-      <div class="mode-title">Full Mock Exam</div>
-      <div class="mode-desc">Timed, graded exam with full review and explanations at the end.</div>
-    </div>
-    <div class="mode-card" data-mode="practice" onclick="selectMode(this)">
-      <div class="active-dot"></div>
-      <div class="mode-icon">⚡</div>
-      <div class="mode-title">Practice Mode</div>
-      <div class="mode-desc">Instant feedback after each answer with explanations as you go.</div>
-    </div>
-    <div class="mode-card" data-mode="weakspot" onclick="selectMode(this)">
-      <div class="active-dot"></div>
-      <div class="mode-icon">🎯</div>
-      <div class="mode-title">Weak Spot Drill</div>
-      <div class="mode-desc">Focus only on topics you've previously answered incorrectly.</div>
+  <div class="glow"></div>
+  <div class="crest">CII</div>
+  <h1>Cert <em>CII</em> Mock Exam</h1>
+  <p class="tag">300 authentic exam-style questions across IF1, IF3 and IF4. Fully offline. No internet required after loading.</p>
+  <div class="cards">
+    <div class="card on" data-unit="IF1" onclick="toggleCard(this)"><div class="dot"></div><div class="c-code">IF1</div><div class="c-name">Insurance, Legal &amp; Regulatory</div><div class="c-count">100 questions</div></div>
+    <div class="card on" data-unit="IF3" onclick="toggleCard(this)"><div class="dot"></div><div class="c-code">IF3</div><div class="c-name">Insurance Underwriting Process</div><div class="c-count">100 questions</div></div>
+    <div class="card on" data-unit="IF4" onclick="toggleCard(this)"><div class="dot"></div><div class="c-code">IF4</div><div class="c-name">Insurance Claims Handling</div><div class="c-count">100 questions</div></div>
+  </div>
+  <div class="cnt-row">
+    <span class="cnt-lbl">Questions per session:</span>
+    <div class="cnts">
+      <div class="cnt" data-n="10" onclick="selCnt(this)">10</div>
+      <div class="cnt on" data-n="20" onclick="selCnt(this)">20</div>
+      <div class="cnt" data-n="30" onclick="selCnt(this)">30</div>
+      <div class="cnt" data-n="50" onclick="selCnt(this)">50</div>
+      <div class="cnt" data-n="100" onclick="selCnt(this)">100</div>
     </div>
   </div>
-
-  <div class="unit-section">
-    <div class="section-label">Units</div>
-    <div class="unit-pills">
-      <div class="unit-pill on" data-unit="IF1" onclick="toggleUnit(this)">IF1 · Legal & Regulatory</div>
-      <div class="unit-pill on" data-unit="IF3" onclick="toggleUnit(this)">IF3 · Underwriting</div>
-      <div class="unit-pill on" data-unit="IF4" onclick="toggleUnit(this)">IF4 · Claims Handling</div>
-    </div>
-  </div>
-
-  <div class="q-count-row">
-    <span class="count-label">Questions per session:</span>
-    <div class="count-btns">
-      <div class="count-btn" data-n="10" onclick="selectCount(this)">10</div>
-      <div class="count-btn on" data-n="20" onclick="selectCount(this)">20</div>
-      <div class="count-btn" data-n="30" onclick="selectCount(this)">30</div>
-      <div class="count-btn" data-n="50" onclick="selectCount(this)">50</div>
-    </div>
-  </div>
-
-  <button class="btn-start" onclick="beginSession()">Start Session →</button>
-
-  <div class="stats-home" id="stats-home">
-    <div class="stat-home">
-      <span class="stat-num" id="stat-attempted">0</span>
-      <span class="stat-name">Attempted</span>
-    </div>
-    <div class="stat-home">
-      <span class="stat-num" id="stat-correct">0%</span>
-      <span class="stat-name">Accuracy</span>
-    </div>
-    <div class="stat-home">
-      <span class="stat-num" id="stat-sessions">0</span>
-      <span class="stat-name">Sessions</span>
-    </div>
+  <button class="btn-go" onclick="startSession()">Start Exam &#8594;</button>
+  <div class="stats-home">
+    <div class="sh"><span class="sh-n" id="sh-att">0</span><span class="sh-l">Attempted</span></div>
+    <div class="sh"><span class="sh-n" id="sh-acc">0%</span><span class="sh-l">Accuracy</span></div>
+    <div class="sh"><span class="sh-n" id="sh-ses">0</span><span class="sh-l">Sessions</span></div>
   </div>
 </div>
-
-<!-- ════════════════════════════════════════ EXAM ══ -->
 <div id="exam">
-  <div class="exam-topbar">
-    <div class="topbar-left">
-      <div class="unit-tag" id="topbar-unit">IF1</div>
-      <div class="q-indicator" id="topbar-q">Q1 of 20</div>
-    </div>
-    <div class="topbar-center">
-      <div class="progress-fill" id="prog-fill"></div>
-    </div>
-    <div class="topbar-right">
-      <div class="score-badge" id="topbar-score">0 / 0</div>
-      <div class="prefetch-status">
-        <div class="prefetch-dot" id="prefetch-dot"></div>
-        <span id="prefetch-label">ready</span>
-      </div>
-      <button class="btn-quit" onclick="confirmQuit()">✕ Quit</button>
-    </div>
+  <div class="topbar">
+    <div class="tb-l"><div class="utag" id="tb-unit">IF1</div><div class="qi" id="tb-qi">Q1 of 20</div></div>
+    <div class="tb-c"><div class="pbar" id="pbar"></div></div>
+    <div class="tb-r"><div class="sc-badge" id="tb-sc">0/0</div><button class="btn-quit" onclick="quitExam()">&#x2715; Quit</button></div>
   </div>
-
-  <div class="question-wrap" id="question-wrap">
-    <!-- Rendered dynamically -->
-  </div>
+  <div class="qwrap" id="qwrap"></div>
 </div>
-
-<!-- ════════════════════════════════════════ RESULTS ══ -->
 <div id="results">
-  <div class="results-inner">
-
-    <div class="results-hero">
-      <div class="score-display">
-        <div class="score-circle" id="score-circle">
-          <svg class="score-svg" viewBox="0 0 150 150">
-            <circle class="score-track" cx="75" cy="75" r="65"/>
-            <circle class="score-fill" id="score-arc" cx="75" cy="75" r="65"
-              stroke-dasharray="408" stroke-dashoffset="408"/>
-          </svg>
-          <div class="score-inner-text">
-            <div class="score-big" id="res-pct">0%</div>
-            <div class="score-small">Score</div>
-          </div>
-        </div>
-        <div class="verdict" id="res-verdict">—</div>
-        <div class="verdict-sub" id="res-sub"></div>
-      </div>
-      <div class="results-chips" id="res-chips"></div>
+  <div class="ri">
+    <div class="rhero">
+      <div class="sc-circle"><svg class="sc-svg" viewBox="0 0 140 140"><circle class="sc-trk" cx="70" cy="70" r="60"/><circle class="sc-arc" id="sc-arc" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="377"/></svg><div class="sc-inner"><div class="sc-big" id="r-pct">0%</div><div class="sc-sm">Score</div></div></div>
+      <div class="verdict" id="r-verdict"></div>
+      <div class="vsub" id="r-sub"></div>
+      <div class="chips" id="r-chips"></div>
     </div>
-
-    <div class="review-header">
-      <div class="review-title">Answer Review</div>
-      <div class="filter-pills">
-        <div class="filter-pill on" data-filter="all" onclick="filterReview(this)">All</div>
-        <div class="filter-pill" data-filter="wrong" onclick="filterReview(this)">Wrong</div>
-        <div class="filter-pill" data-filter="correct" onclick="filterReview(this)">Correct</div>
-        <div class="filter-pill" data-filter="skipped" onclick="filterReview(this)">Skipped</div>
+    <div class="rv-hdr">
+      <div class="rv-ttl">Answer Review</div>
+      <div class="fps">
+        <div class="fp on" data-f="all" onclick="filterRv(this)">All</div>
+        <div class="fp" data-f="wrong" onclick="filterRv(this)">Wrong</div>
+        <div class="fp" data-f="correct" onclick="filterRv(this)">Correct</div>
+        <div class="fp" data-f="skipped" onclick="filterRv(this)">Skipped</div>
       </div>
     </div>
-
-    <div id="review-list"></div>
-
-    <div class="results-actions">
-      <button class="btn-secondary" onclick="retake()">↺ Retake</button>
-      <button class="btn-start" style="max-width:220px" onclick="goHome()">⌂ New Session</button>
+    <div id="rv-list"></div>
+    <div class="res-acts">
+      <button class="btn-sec" onclick="startSession()">&#x21BA; Retake</button>
+      <button class="btn-go" style="max-width:200px" onclick="goHome()">&#x2302; Home</button>
     </div>
   </div>
 </div>
-
-</div><!-- .app -->
-
-<div class="toast" id="toast"></div>
-
+</div>
 <script>
-
-// ═══════════════════════════════════════════════════════════
-//  API KEY — defined first so available everywhere
-// ═══════════════════════════════════════════════════════════
-const STORED_KEY = 'cii_api_key';
-function getApiKey() { return localStorage.getItem(STORED_KEY) || ''; }
-function saveApiKey(k) { localStorage.setItem(STORED_KEY, k); }
-
-// ═══════════════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════════════
-
-let CFG = {
-  mode: 'exam',
-  units: ['IF1','IF3','IF4'],
-  total: 20
-};
-
-let SESSION = {
-  questions: [],       // [{unit, stem, options:[], answer:int, difficulty}]
-  answers: [],         // [{selected: int|null, skipped: bool}]
-  current: 0,
-  correctSoFar: 0,
-  wrongTopics: []      // track weak spots
-};
-
-let BUFFER = [];       // prefetched questions
-let FETCHING = false;
-let HISTORY_TOPICS = new Set(); // avoid repetition
-let LIFETIME = JSON.parse(localStorage.getItem('cii_lifetime')||'{"attempted":0,"correct":0,"sessions":0,"weakTopics":[]}');
-
-// ═══════════════════════════════════════════════════════════
-//  HOME CONTROLS
-// ═══════════════════════════════════════════════════════════
-
-function selectMode(el) {
-  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  CFG.mode = el.dataset.mode;
-}
-
-function toggleUnit(el) {
-  el.classList.toggle('on');
-  CFG.units = [...document.querySelectorAll('.unit-pill.on')].map(p => p.dataset.unit);
-}
-
-function selectCount(el) {
-  document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('on'));
-  el.classList.add('on');
-  CFG.total = parseInt(el.dataset.n);
-}
-
-function updateHomeStats() {
-  document.getElementById('stat-attempted').textContent = LIFETIME.attempted;
-  const acc = LIFETIME.attempted ? Math.round((LIFETIME.correct/LIFETIME.attempted)*100) : 0;
-  document.getElementById('stat-correct').textContent = acc + '%';
-  document.getElementById('stat-sessions').textContent = LIFETIME.sessions;
-}
-
-
-// ═══════════════════════════════════════════════════════════
-//  QUESTION GENERATION
-// ═══════════════════════════════════════════════════════════
-
-const UNIT_TOPICS = {
-  IF1: [
-    'insurable interest', 'utmost good faith', 'material disclosure', 'proximate cause',
-    'indemnity principle', 'subrogation rights', 'contribution between insurers',
-    'Insurance Act 2015', 'FCA regulation', 'PRA regulation', 'Lloyd\'s market structure',
-    'types of insurance intermediaries', 'Consumer Duty', 'Treating Customers Fairly',
-    'policy conditions and warranties', 'offer and acceptance in insurance contracts',
-    'void and voidable contracts', 'misrepresentation in insurance',
-    'legal basis of tort', 'negligence and duty of care', 'contract of adhesion',
-    'financial ombudsman service', 'FSCS protection', 'IDD requirements',
-    'sanctions and money laundering obligations', 'policyholder rights at renewal',
-    'cancellation rights and cooling-off period', 'excess and deductibles',
-    'co-insurance clauses', 'average clause in property insurance'
-  ],
-  IF3: [
-    'risk assessment and rating factors', 'moral hazard vs physical hazard',
-    'adverse selection', 'underwriting cycle soft vs hard market',
-    'burning cost calculations', 'experience rating', 'portfolio management',
-    'quota share reinsurance', 'surplus reinsurance', 'excess of loss reinsurance',
-    'facultative reinsurance', 'treaty reinsurance', 'combined ratio',
-    'loss ratio and expense ratio', 'property underwriting sum insured',
-    'business interruption underwriting', 'liability underwriting',
-    'motor underwriting rating', 'marine cargo underwriting',
-    'employers liability compulsory insurance', 'public liability',
-    'professional indemnity', 'directors and officers liability',
-    'cyber insurance underwriting', 'parametric insurance',
-    'Lloyd\'s syndicate underwriting', 'delegated underwriting authority',
-    'flood risk assessment', 'catastrophe modelling',
-    'premium adequacy testing', 'underwriting profit margin'
-  ],
-  IF4: [
-    'first notification of loss FNOL', 'claims reserving and IBNR',
-    'loss adjuster role and appointment', 'loss assessor policyholder advocate',
-    'betterment in property claims', 'subrogation in claims recovery',
-    'contribution in claims handling', 'motor claims total loss',
-    'third party liability claims', 'MIB uninsured drivers scheme',
-    'Third Parties Rights Against Insurers Act 2010', 'without prejudice negotiation',
-    'ex gratia payments', 'claims fraud indicators', 'Fraud Act 2006',
-    'business interruption indemnity period', 'quantum of damages',
-    'general damages and special damages', 'Ogden tables',
-    'rehabilitation in personal injury claims', 'credit hire claims',
-    'whiplash reform legislation', 'small claims portal',
-    'claims inflation drivers', 'reinsurance recovery in claims',
-    'coverage disputes and policy interpretation', 'arbitration in insurance disputes',
-    'complaints handling and FCA rules', 'TCF in claims', 'digital claims technology'
-  ]
-};
-
-function pickTopicsForBatch(unit, count=5) {
-  const pool = UNIT_TOPICS[unit].filter(t => !HISTORY_TOPICS.has(`${unit}:${t}`));
-  const picked = pool.length >= count
-    ? pool.sort(()=>Math.random()-0.5).slice(0,count)
-    : [...pool, ...UNIT_TOPICS[unit].sort(()=>Math.random()-0.5)].slice(0,count);
-  picked.forEach(t => HISTORY_TOPICS.add(`${unit}:${t}`));
-  if (HISTORY_TOPICS.size > UNIT_TOPICS[unit].length * 3) {
-    // Reset if we've cycled through everything
-    UNIT_TOPICS[unit].forEach(t => HISTORY_TOPICS.delete(`${unit}:${t}`));
-  }
-  return picked;
-}
-
-async function generateBatch(units, count=3) {
-  const unit = units[Math.floor(Math.random()*units.length)];
-  const topics = pickTopicsForBatch(unit, count);
-
-  const prompt = `You are a CII examiner. Generate exactly ${count} MCQ questions for Cert CII unit ${unit}.
-Topics: ${topics.join(', ')}.
-IF1=UK legal/regulatory, IF3=underwriting/reinsurance, IF4=claims process.
-Respond ONLY with a raw JSON array (no markdown, no text outside the array):
-[{"unit":"${unit}","topic":"string","difficulty":"easy","stem":"Question?","options":["A","B","C","D"],"answer":0,"explanation":"Explanation here."}]`;
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": getApiKey(),
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5",
-      max_tokens: 4000,
-      messages: [{ role: "user", content: prompt }]
-    })
+const QB={"IF1": [{"s": "Which legal principle requires an insured to have a financial interest in the subject matter at the time of loss?", "o": ["Utmost good faith", "Subrogation", "Insurable interest", "Indemnity"], "a": 2, "d": "easy", "e": "Insurable interest means the insured must stand to suffer a financial loss if the subject matter is damaged. Without it the contract is void."}, {"s": "The doctrine of uberrimae fidei requires the proposer to:", "o": ["Pay premiums promptly", "Disclose all material facts", "Maintain the property in good repair", "Notify claims within 24 hours"], "a": 1, "d": "easy", "e": "Utmost good faith requires disclosure of all material facts that would influence a prudent insurer's decision. Failure can make the policy voidable."}, {"s": "Under the Insurance Act 2015, the duty of disclosure was replaced by:", "o": ["Absolute disclosure", "Fair presentation of risk", "Reasonable care duty", "Voluntary disclosure"], "a": 1, "d": "medium", "e": "The Insurance Act 2015 introduced the duty of fair presentation \u2014 requiring clear disclosure of every material circumstance known or that ought to be known."}, {"s": "Proximate cause in insurance is best described as:", "o": ["The most remote cause", "The final cause in a chain", "The dominant effective cause of loss", "Any contributing cause"], "a": 2, "d": "medium", "e": "Proximate cause is the dominant, active, efficient cause of loss. Courts identify it to determine whether a loss falls within policy coverage."}, {"s": "The primary purpose of the indemnity principle is to:", "o": ["Ensure insurer profitability", "Restore the insured to their pre-loss financial position", "Prevent all insurance fraud", "Limit claims to market value only"], "a": 1, "d": "easy", "e": "Indemnity puts the insured back in the same financial position as immediately before the loss \u2014 no better, no worse."}, {"s": "Which body is responsible for conduct of business regulation of insurers in the UK?", "o": ["Prudential Regulation Authority", "Bank of England", "Financial Conduct Authority", "Association of British Insurers"], "a": 2, "d": "easy", "e": "The FCA regulates the conduct of business for financial services firms including insurers, focusing on consumer protection and market integrity."}, {"s": "Which body prudentially regulates large UK insurance companies?", "o": ["Financial Conduct Authority", "Prudential Regulation Authority", "Financial Ombudsman Service", "HM Treasury"], "a": 1, "d": "easy", "e": "The PRA, part of the Bank of England, is responsible for prudential regulation and supervision of insurers and major financial firms."}, {"s": "Under contribution, when two policies cover the same loss each insurer pays:", "o": ["The full amount to policy limit", "A proportionate share of the loss", "Nothing \u2014 double insurance voids both", "The amount determined by FOS"], "a": 1, "d": "medium", "e": "Contribution prevents the insured recovering more than actual loss. Where two or more policies cover the same risk, each pays a rateable proportion."}, {"s": "Which of the following is NOT essential for a valid insurance contract?", "o": ["Offer and acceptance", "Insurable interest", "A written policy document", "Consideration"], "a": 2, "d": "medium", "e": "Insurance contracts can be verbal \u2014 there is no legal requirement for a written document. Writing is evidence of the contract but not essential to its validity."}, {"s": "An ex gratia payment by an insurer is:", "o": ["A legally compelled payment", "A goodwill payment without legal obligation", "A payment ordered by the FOS", "A reinsurance recovery"], "a": 1, "d": "easy", "e": "Ex gratia means out of grace. The insurer pays voluntarily without admitting liability \u2014 typically where strict policy terms do not oblige payment."}, {"s": "Breach of a warranty in an insurance policy:", "o": ["Allows insurer to reduce the claim", "Automatically discharges insurer liability from date of breach", "Requires FCA notification", "Entitles the insured to cancel"], "a": 1, "d": "hard", "e": "Under common law, breach of warranty automatically discharged insurer liability from the date of breach regardless of whether the breach was causally connected to the loss."}, {"s": "The Insurance Distribution Directive was designed to:", "o": ["Set premium tax rates", "Harmonise EU insurance distribution regulation", "Establish Solvency II capital requirements", "Create the FCA"], "a": 1, "d": "medium", "e": "The IDD created a level playing field across the EU for all those distributing insurance \u2014 whether direct insurers, brokers, or bancassurance."}, {"s": "Which would be a material fact for a motor insurance proposal?", "o": ["The proposer's favourite colour", "Previous motoring convictions", "The proposer's educational background", "The radio make in the vehicle"], "a": 1, "d": "easy", "e": "A material fact would influence a prudent insurer in accepting the risk or fixing the premium. Previous convictions significantly affect risk assessment."}, {"s": "Subrogation in insurance allows the insurer to:", "o": ["Cancel mid-term without notice", "Recover costs from a negligent third party after paying a claim", "Increase premium after a claim", "Reject claims not reported within 7 days"], "a": 1, "d": "easy", "e": "Subrogation allows an insurer who has paid a claim to pursue recovery action against a negligent third party who caused the loss."}, {"s": "The Financial Ombudsman Service can handle complaints from:", "o": ["Large corporations with turnover over 6.5m", "Only private individuals", "Eligible complainants including individuals and small businesses", "Only Lloyd's policyholders"], "a": 2, "d": "medium", "e": "The FOS handles complaints from eligible complainants \u2014 individuals, small businesses, charities and trustees \u2014 where a firm has not resolved the complaint satisfactorily."}, {"s": "A voidable insurance contract means:", "o": ["The contract is automatically void from the start", "A party has the right to set aside the contract", "The contract cannot be cancelled", "The insurer must pay all claims"], "a": 1, "d": "medium", "e": "A voidable contract is valid unless a party exercises their right to avoid it \u2014 for example an insurer can avoid where the insured has misrepresented a material fact."}, {"s": "The FSCS protects policyholders when:", "o": ["Their premium is overcharged", "An FCA-authorised insurer fails", "A claim is unfairly rejected", "The FOS rules against the insurer"], "a": 1, "d": "easy", "e": "The Financial Services Compensation Scheme protects policyholders if their authorised insurer becomes insolvent and cannot meet claims."}, {"s": "Moral hazard in insurance refers to:", "o": ["Risk of physical damage to property", "The insured's attitude increasing risk of loss or inflating claims", "Market risk affecting premium rates", "Legal risk of contract disputes"], "a": 1, "d": "easy", "e": "Moral hazard is the risk that insurance changes the insured's behaviour \u2014 being less careful or exaggerating claims because losses are covered."}, {"s": "When the same risk is insured with two or more insurers this is called:", "o": ["Reinsurance", "Double insurance", "Co-insurance", "Excess insurance"], "a": 1, "d": "easy", "e": "Double insurance occurs when the same risk is insured with two or more insurers for the same interest and period. Contribution prevents the insured profiting."}, {"s": "Under the Consumer Rights Act 2015, unfair terms in consumer insurance:", "o": ["Are always enforceable", "May be unenforceable if not transparent and prominent", "Are subject to FOS review only", "Apply only to commercial policies"], "a": 1, "d": "hard", "e": "The CRA 2015 provides that unfair terms in consumer contracts are not binding. A term is unfair if it creates a significant imbalance to the detriment of the consumer."}, {"s": "Lloyd's of London is best described as:", "o": ["A large insurance company", "A marketplace where syndicates underwrite risks", "Regulated only by its own internal rules", "A personal lines insurer only"], "a": 1, "d": "easy", "e": "Lloyd's is not an insurer but a market \u2014 a corporation providing the framework within which syndicates backed by Names or corporate capital underwrite insurance risks."}, {"s": "The average clause in a property policy applies when:", "o": ["The insured has two policies", "The property is underinsured at the time of loss", "The claim is above the policy limit", "The insurer suspects fraud"], "a": 1, "d": "medium", "e": "Average provides that if property is insured for less than its full value, claims are reduced proportionately. Insured for 75% of value means claims paid at 75%."}, {"s": "Subrogation rights arise:", "o": ["Before the claim is paid", "After the insurer has indemnified the insured", "At policy inception", "Only in marine insurance"], "a": 1, "d": "medium", "e": "Subrogation rights arise only after the insurer has indemnified the insured. The insurer then stands in the insured's place to pursue any responsible third party."}, {"s": "A condition precedent to liability means:", "o": ["The insurer must pay before investigating", "The insured must comply strictly or the insurer is not liable", "The condition is optional", "The FOS must approve the condition"], "a": 1, "d": "hard", "e": "A condition precedent must be strictly complied with as a prerequisite to the insurer's obligation to pay \u2014 for example notifying a claim within a specified time period."}, {"s": "Contra proferentem in insurance means:", "o": ["Ambiguous terms are interpreted against the insurer", "Ambiguous terms are interpreted against the insured", "The insurer always wins disputes", "It applies only to commercial policies"], "a": 0, "d": "hard", "e": "Contra proferentem means ambiguous contract terms are interpreted against the party who drafted them \u2014 typically the insurer. Courts resolve ambiguity in the insured's favour."}, {"s": "The policyholder cooling-off period for a general insurance policy is:", "o": ["7 days", "14 days", "28 days", "No cooling-off right"], "a": 1, "d": "medium", "e": "FCA rules (ICOBS) require a 14-day cancellation right for non-life insurance policies. The consumer can cancel and receive a premium refund minus days on risk."}, {"s": "Solvency II is primarily designed to:", "o": ["Regulate premium pricing", "Ensure insurers hold adequate capital for their risks", "Standardise policy wording", "Regulate insurance brokers"], "a": 1, "d": "medium", "e": "Solvency II requires insurers to hold risk-based capital (SCR) sufficient to ensure 99.5% probability of solvency over a one-year horizon."}, {"s": "A without prejudice payment by an insurer means:", "o": ["Full liability is admitted", "The payment cannot be used as evidence of liability", "The claim is disputed", "The FOS has ordered payment"], "a": 1, "d": "medium", "e": "Without prejudice means the payment does not constitute an admission of liability and cannot be used as evidence in subsequent legal proceedings."}, {"s": "Utmost good faith applies to:", "o": ["The proposer only", "Both the insurer and the insured", "The broker only", "Only at claims stage"], "a": 1, "d": "medium", "e": "Utmost good faith is a mutual obligation binding on both insurer and insured. The insurer must also act in good faith \u2014 for example explaining policy terms and exclusions clearly."}, {"s": "A material misrepresentation in insurance is:", "o": ["An error in the policy document", "A false statement about a fact that would influence the insurer's decision", "A claim for a material loss", "A dispute about premium rate"], "a": 1, "d": "medium", "e": "A material misrepresentation is a false statement about a fact that would influence a prudent insurer's decision to accept the risk or the premium charged."}, {"s": "The minimum EL cover required under the ELCIA 1969 is:", "o": ["1 million pounds", "5 million pounds", "10 million pounds", "25 million pounds"], "a": 1, "d": "hard", "e": "The ELCIA 1969 requires UK employers to hold at least 5 million pounds EL insurance. Most policies provide 10 million pounds in practice. The certificate must be displayed at each place of business."}, {"s": "A physical hazard in insurance is:", "o": ["The insured's honesty", "The physical characteristics of the risk itself", "The insured's financial position", "The insured's claims history"], "a": 1, "d": "easy", "e": "Physical hazard relates to the physical characteristics of the risk \u2014 the nature, condition and location of the subject matter such as proximity to a river increasing flood risk."}, {"s": "The Insurance Act 2015 proportionate remedies mean:", "o": ["The insurer can only void the policy", "Remedies reflect what the insurer would have done if the breach had not occurred", "The insured pays a fixed penalty", "The FCA sets the remedy"], "a": 1, "d": "hard", "e": "Proportionate remedies mean that for innocent breaches the insurer cannot simply void the policy. Remedies reflect what the insurer would have done \u2014 charging more premium means a proportionate claim reduction."}, {"s": "A cover note provides:", "o": ["Full policy documentation", "Temporary evidence of insurance while the policy is being prepared", "A quote from the insurer", "A claims acknowledgement"], "a": 1, "d": "easy", "e": "A cover note is temporary documentation providing evidence of insurance while the formal policy is being prepared. It has the same legal effect as the policy during its currency."}, {"s": "Reinstatement as a basis of claims settlement means:", "o": ["Paying market value", "Paying the cost of restoring the property to its pre-loss condition", "Providing new replacement", "Paying the depreciated value"], "a": 1, "d": "medium", "e": "Reinstatement means restoring damaged property to substantially the same condition as before the loss. Claims are paid at rebuilding or repair cost without depreciation deductions."}, {"s": "The main purpose of a proposal form is to:", "o": ["Provide cover immediately", "Enable the insurer to assess and rate the risk", "Create the insurance contract", "Notify a claim"], "a": 1, "d": "easy", "e": "The proposal form gathers information from the proposer enabling the underwriter to assess the risk, decide whether to accept it, and determine the appropriate premium."}, {"s": "Under the Third Parties Rights Against Insurers Act 2010 a claimant can:", "o": ["Sue the insurer directly if the insured is insolvent", "Claim from the FOS", "Override policy exclusions", "Recover from any insurer in the market"], "a": 0, "d": "hard", "e": "The 2010 Act allows a third party to bring a direct action against the insurer if the insured has become insolvent, without first establishing the insured's liability through separate proceedings."}, {"s": "A claims made policy responds to:", "o": ["Incidents occurring during the policy period", "Claims notified to the insurer during the policy period", "Losses discovered during the policy period", "Damage occurring in the previous 5 years"], "a": 1, "d": "medium", "e": "A claims made policy responds to claims notified to the insurer during the policy period regardless of when the original incident occurred. Common in professional indemnity and liability policies."}, {"s": "The FCA Consumer Duty requires firms to deliver:", "o": ["The lowest available premium", "Good outcomes for retail customers", "Zero claims rejection rates", "Guaranteed policy renewals"], "a": 1, "d": "medium", "e": "The FCA Consumer Duty (effective 2023) requires firms to act to deliver good outcomes for retail customers across products, price, communications, and consumer support."}, {"s": "An occurrence basis liability policy responds to:", "o": ["Claims notified in the policy year", "Incidents occurring during the policy period", "All historical claims whenever notified", "Only claims above a threshold"], "a": 1, "d": "medium", "e": "Occurrence policies cover events that occur during the policy period regardless of when the claim is made. Common in public liability, this gives long-tail protection for later-emerging claims."}, {"s": "A policy deductible is designed to:", "o": ["Penalise the insured", "Eliminate small claims and reduce moral hazard", "Increase the premium", "Satisfy FCA requirements"], "a": 1, "d": "easy", "e": "A deductible means the insured bears the first portion of every loss. It eliminates small claims, reduces moral hazard, and incentivises loss prevention."}, {"s": "An aleatory contract is one where:", "o": ["The contract is based on equal exchange", "Performance depends on an uncertain future event", "Both parties must be fully informed", "The contract must be in writing"], "a": 1, "d": "hard", "e": "An aleatory contract is one where performance depends on an uncertain event. Insurance is aleatory \u2014 the insurer may pay nothing or many times the premium depending on whether a loss occurs."}, {"s": "A captive insurance company is:", "o": ["An insurer owned by Lloyd's", "An insurer established by a company to insure its own group risks", "A government-owned insurer", "An insurer that only covers captive animals"], "a": 1, "d": "medium", "e": "A captive is an insurance company wholly owned by one or more non-insurance businesses to insure the risks of its parent or affiliate group, retaining risk within their structure."}, {"s": "The purpose of reinsurance is primarily to:", "o": ["Avoid paying large claims", "Spread and manage an insurer's risk exposure", "Reduce FCA capital requirements", "Replace direct insurance"], "a": 1, "d": "easy", "e": "Reinsurance allows insurers to manage their exposure by transferring portions of risk to reinsurers, enabling acceptance of larger risks and protection against catastrophic losses."}, {"s": "A peril in insurance is:", "o": ["An old building", "The cause of loss that triggers the policy", "Being underinsured", "Lax security"], "a": 1, "d": "easy", "e": "A peril is the cause of loss \u2014 the event that triggers the insurance policy. Examples include fire, flood, theft, and storm. A hazard increases the likelihood or severity of a peril."}, {"s": "A fortuitous loss in insurance is one that:", "o": ["Was certain to happen", "Occurs by chance and is unexpected", "Was caused deliberately", "Exceeds the sum insured"], "a": 1, "d": "easy", "e": "Insurance covers fortuitous losses \u2014 those that are accidental and uncertain. Deliberate or inevitable losses are not insurable. The element of chance is fundamental to insurance."}, {"s": "The Lloyd's slip is:", "o": ["A claims payment document", "A document summarising risk details presented to underwriters", "A Lloyd's membership application", "A certificate of insurance"], "a": 1, "d": "medium", "e": "A Lloyd's slip is prepared by the broker summarising risk details and proposed terms, presented to underwriters in the Lloyd's market for them to subscribe to lines of cover."}, {"s": "A composite insurer is one that:", "o": ["Writes only one class of business", "Writes both life and non-life business", "Is owned by a bank", "Operates only in Lloyd's"], "a": 1, "d": "medium", "e": "A composite insurer writes both long-term (life) and general (non-life) insurance. UK regulation generally requires separate legal entities to protect policyholders of each type."}, {"s": "Gross written premium GWP is:", "o": ["Premium after deducting reinsurance costs", "Total premium income written before any deductions", "Premium after broker commission", "Premium after claims payments"], "a": 1, "d": "easy", "e": "GWP is the total premium income written by an insurer during a period before deducting reinsurance premiums or other costs. A key measure of volume of business."}, {"s": "The IPID document is designed to:", "o": ["Provide full policy wording", "Give a standardised summary of key policy features before purchase", "Evidence cover for third parties", "Record claims history"], "a": 1, "d": "easy", "e": "The Insurance Product Information Document is a mandatory standardised document required by the IDD for non-life insurance, summarising key features, exclusions, duration, and payment method before contract conclusion."}, {"s": "In English law, silence on a material fact is treated as:", "o": ["Always permissible", "Non-disclosure, potentially allowing the insurer to avoid", "Acceptable if not asked directly", "Only material if fraudulent"], "a": 1, "d": "hard", "e": "Insurance imposes a positive duty to volunteer material information even if not asked. Silence about a material fact can constitute non-disclosure entitling the insurer to avoid the policy."}, {"s": "Non-disclosure in insurance means:", "o": ["Failure to pay premium", "Failure to reveal a material fact to the insurer", "Failure to report a claim", "Refusal to renew a policy"], "a": 1, "d": "easy", "e": "Non-disclosure is the failure of the proposer to reveal information material to the insurer's underwriting decision. It can entitle the insurer to avoid or apply proportionate remedies."}, {"s": "FCA rules require insurers to handle claims:", "o": ["Within 7 days of notification", "Promptly and fairly", "Only after receiving all documentation", "Without involving loss adjusters"], "a": 1, "d": "easy", "e": "ICOBS 8 requires insurers to handle claims promptly and fairly, settle promptly once liability is established, and not unreasonably reject or delay claims."}, {"s": "A long-tail liability claim is one that:", "o": ["Is settled quickly", "Emerges or is settled many years after the original incident", "Exceeds 1 million pounds", "Involves multiple parties"], "a": 1, "d": "medium", "e": "Long-tail claims arise from incidents where injury, disease, or damage takes years or decades to manifest \u2014 such as mesothelioma from asbestos exposure. They present significant reserving challenges."}, {"s": "The Consumer Insurance Disclosure and Representations Act 2012 applies to:", "o": ["Commercial policyholders", "Individual consumers purchasing insurance", "All UK policyholders", "Only motor insurance"], "a": 1, "d": "medium", "e": "CIDRA 2012 applies to consumer insurance contracts \u2014 those entered into by individuals for purposes unrelated to their trade or business. It replaced the old duty of disclosure with a duty not to misrepresent."}, {"s": "A basis of contract clause converts proposal form answers into:", "o": ["Evidence of cover", "Warranties where any inaccuracy can allow the insurer to avoid", "Optional conditions", "Claims notification obligations"], "a": 1, "d": "hard", "e": "A basis of contract clause elevates all proposal form answers to the status of warranties. Any inaccuracy even innocent could allow the insurer to avoid the policy. Consumer Insurance Act 2012 abolished these for consumers."}, {"s": "Reinsurance is insurance purchased by:", "o": ["Policyholders", "Insurers to manage their own risk", "A type of mutual insurance", "The government"], "a": 1, "d": "easy", "e": "Reinsurance is purchased by insurers (cedants) from reinsurers to manage their own risk exposure. The policyholder has no direct relationship with the reinsurer."}, {"s": "An excess layer in insurance placement:", "o": ["Provides cover below the primary policy", "Attaches above the primary layer limit", "Represents the insurer's profit margin", "Is a Lloyd's syndicate line size"], "a": 1, "d": "medium", "e": "In layered placement, the excess layer attaches at the limit of the primary layer and provides cover up to a further limit. Complex risks may have many layers with different insurers."}, {"s": "FNOL stands for:", "o": ["Financial Notice of Loss", "First Notification of Loss", "Final Net of Liability", "Formal Notice of Legal Action"], "a": 1, "d": "easy", "e": "FNOL is First Notification of Loss \u2014 the initial report of a claim to the insurer. Prompt FNOL enables early investigation, fraud detection, and faster resolution."}, {"s": "A reinsurance treaty is:", "o": ["An individual risk placement", "A standing arrangement for automatic cession and acceptance of defined risks", "A Lloyd's market agreement", "A government-mandated reinsurance pool"], "a": 1, "d": "medium", "e": "A reinsurance treaty is a standing agreement where the cedant automatically cedes and the reinsurer automatically accepts defined classes of risks within agreed parameters."}, {"s": "The Enterprise Act 2016 in insurance means:", "o": ["Insurers must publish premiums", "Insurers must pay valid claims within a reasonable time or face damages", "Brokers must disclose all commission", "All policies must be in plain English"], "a": 1, "d": "hard", "e": "The Enterprise Act 2016 introduced an implied term that insurers must pay valid claims within a reasonable time. Breach can result in the insured claiming consequential damages for losses caused by delayed payment."}, {"s": "Net written premium differs from gross written premium in that:", "o": ["NWP is higher", "NWP is after deducting reinsurance premiums ceded", "NWP excludes claims payments", "NWP includes investment income"], "a": 1, "d": "medium", "e": "NWP is GWP minus reinsurance premiums ceded \u2014 representing the premium the insurer retains for its own account after purchasing reinsurance protection."}, {"s": "A Lloyd's syndicate's capacity is:", "o": ["Number of risks it can write", "Maximum aggregate premium it is authorised to underwrite", "Number of underwriters employed", "Total assets held"], "a": 1, "d": "medium", "e": "Capacity is the maximum amount of premium income that a Lloyd's syndicate is authorised to underwrite in a given year of account. It reflects the capital provided by its members."}, {"s": "Parametric insurance is:", "o": ["Cover based on actual loss assessment", "Automatic payment triggered by a specific parameter regardless of actual loss", "Cover for parameters exceeding the sum insured", "Reinsurance for catastrophic risks only"], "a": 1, "d": "hard", "e": "Parametric insurance pays a predetermined amount when a trigger parameter such as earthquake magnitude or wind speed is met, without requiring proof of actual loss. It eliminates claims adjustment delays."}, {"s": "Excess of loss reinsurance pays:", "o": ["A fixed percentage of all losses", "Losses exceeding the cedant's retention up to the layer limit", "All losses in a class", "Only catastrophe losses"], "a": 1, "d": "medium", "e": "XL reinsurance pays losses above the cedant's self-insured retention up to the treaty layer limit. It can be per-risk, per-occurrence, or aggregate."}, {"s": "A quota share reinsurance treaty means:", "o": ["The reinsurer pays losses above a fixed retention", "The reinsurer takes a fixed percentage of every risk written", "The insurer selects which risks to cede", "Reinsurance placed risk by risk"], "a": 1, "d": "medium", "e": "In quota share the cedant cedes and the reinsurer accepts a fixed percentage of every risk in the class. Premium and losses are shared in the same percentage."}, {"s": "Under UK law an insurer failing to pay a valid claim promptly may face:", "o": ["Regulatory fines only", "Consequential damages under the Enterprise Act 2016", "Automatic policy cancellation", "FOS automatic award"], "a": 1, "d": "hard", "e": "Following the Enterprise Act 2016 insurers who fail to pay valid claims within a reasonable time can be liable for consequential damages suffered by the insured as a result of the delayed payment."}, {"s": "Pro rata premium return on cancellation means:", "o": ["Full premium returned", "Premium returned in proportion to the unexpired period", "Premium retained as cancellation fee", "Premium doubled on renewal"], "a": 1, "d": "easy", "e": "Pro rata return means the insurer refunds premium proportionate to the unexpired period. Cancellation with 6 months remaining of a 12-month policy returns 50% of premium."}, {"s": "A mutual insurance company is:", "o": ["Owned by shareholders seeking profit", "Owned by policyholders who share profits and losses", "Listed on a stock exchange", "Regulated only by Lloyd's"], "a": 1, "d": "easy", "e": "A mutual insurer is owned by its policyholders rather than external shareholders. Profits are retained to strengthen the company or returned to members."}, {"s": "Assignment of an insurance policy means:", "o": ["The insurer transfers risk to a reinsurer", "The insured transfers their rights under the policy to another person", "The broker changes insurer", "The policy is cancelled and rewritten"], "a": 1, "d": "medium", "e": "Assignment is the transfer of rights under an insurance policy. Most non-life policies require the insurer's consent because insurable interest and the personal nature of the contract must be maintained."}, {"s": "IBNR in claims stands for:", "o": ["Claims reported but not yet paid", "Estimated reserve for claims that occurred but not yet been notified to the insurer", "Claims the insurer declined to report", "Losses reported to reinsurers only"], "a": 1, "d": "medium", "e": "IBNR (Incurred But Not Reported) is the reserve established for claims that have already occurred but have not yet been reported to the insurer. Critical for accurate liability reporting especially in long-tail classes."}, {"s": "Index linking of sums insured is designed to:", "o": ["Link premium to stock market performance", "Automatically adjust the sum insured with inflation to prevent underinsurance", "Link claims payments to RPI", "Track insurer profitability"], "a": 1, "d": "easy", "e": "Index linking automatically increases the sum insured in line with a relevant inflation index at renewal, helping to prevent underinsurance creeping in as rebuilding costs rise over time."}, {"s": "A long-term arrangement LTA benefits the insured by:", "o": ["Providing unlimited cover", "Offering rate certainty and stability over multiple years", "Eliminating all excesses", "Guaranteeing no claims will be rejected"], "a": 1, "d": "medium", "e": "An LTA provides premium certainty over the agreed period and may offer a discount for the commitment to renew \u2014 valuable in volatile markets where rates fluctuate significantly."}, {"s": "The slip leader in a London market placement is:", "o": ["The last underwriter to subscribe", "The lead underwriter whose terms others follow", "The Lloyd's Corporation representative", "The reinsurer"], "a": 1, "d": "medium", "e": "The lead underwriter is first to accept terms on a risk. Following market underwriters typically accept the leader's terms and pricing. The leader's credibility is critical to successful placement."}, {"s": "Reinsurance to close RITC at Lloyd's means:", "o": ["Cancellation of a reinsurance treaty", "A new year of account assumes all liabilities of the previous year", "Closing the Lloyd's market at year end", "Final premium payment to reinsurer"], "a": 1, "d": "hard", "e": "RITC is the mechanism by which a Lloyd's year of account closes. The closing year pays a premium to the next year to accept all outstanding and future liabilities allowing the year to close with certainty."}, {"s": "The Rehabilitation of Offenders Act 1974 means a spent conviction:", "o": ["Must always be disclosed", "Need not be disclosed unless specifically asked on the proposal form", "Increases premium automatically", "Voids existing policies"], "a": 1, "d": "hard", "e": "The ROA 1974 allows people to put spent convictions behind them. For insurance spent convictions generally need not be disclosed unless the proposal form specifically and clearly asks for them."}, {"s": "In the London market co-insurance means:", "o": ["Two insurers independently cover the same risk for full value", "Multiple insurers each take an agreed percentage share of the risk", "The insured acts as their own insurer", "Reinsurance is used alongside direct insurance"], "a": 1, "d": "medium", "e": "Co-insurance in the London market involves multiple insurers each taking a defined percentage share of a risk, with each paying their proportion of any valid claim. Premium is also split in the same proportions."}, {"s": "A preferred risk in underwriting is one that:", "o": ["Pays the highest premium", "Has better characteristics than average qualifying for improved terms", "Has never made a claim", "Is a large commercial account"], "a": 1, "d": "easy", "e": "A preferred risk has characteristics better than average \u2014 good claims history, well-maintained premises, excellent security, favourable location \u2014 attracting lower premiums and better terms."}], "IF3": [{"s": "Moral hazard in underwriting is best described as:", "o": ["Physical characteristics increasing risk", "The insured's attitude or behaviour increasing likelihood of loss", "Market risk affecting premiums", "Legal risk of policy disputes"], "a": 1, "d": "easy", "e": "Moral hazard relates to the attitude, behaviour, or integrity of the insured. An insured who is careless because they are insured represents a moral hazard."}, {"s": "Adverse selection in insurance markets refers to:", "o": ["Insurers selecting only profitable risks", "Higher-risk individuals being more likely to seek insurance", "Underwriters making poor decisions", "Regulators selecting firms for supervision"], "a": 1, "d": "medium", "e": "Adverse selection occurs when higher-risk individuals are more likely to purchase insurance than lower-risk individuals, leading to a claims experience worse than expected from the average population."}, {"s": "Burning cost analysis in property underwriting uses:", "o": ["Current market premium rates", "Historical claims data to project future loss frequency and severity", "Reinsurance treaty costs", "Expense loading benchmarks"], "a": 1, "d": "medium", "e": "Burning cost is actual past claims expressed as a rate on premium or sum insured. Underwriters use it to assess whether past premium has been adequate and to project future expected losses."}, {"s": "The primary purpose of a policy excess in commercial insurance is to:", "o": ["Increase insurer revenue", "Eliminate small claims and align insured interests with loss prevention", "Comply with Solvency II", "Reduce reinsurance costs automatically"], "a": 1, "d": "easy", "e": "A commercial excess means the insured bears the first portion of every loss. This eliminates small claims, reduces moral hazard, and incentivises loss prevention."}, {"s": "Facultative reinsurance is:", "o": ["Automatic cover for all risks in a class", "Individual placement of a specific risk with a reinsurer", "Aggregate stop loss cover", "A Lloyd's line slip"], "a": 1, "d": "medium", "e": "Facultative reinsurance is placed on an individual risk-by-risk basis. The reinsurer can accept or decline each risk offered. Used for large, unusual, or hazardous risks outside treaty scope."}, {"s": "The combined ratio equals:", "o": ["Net premium divided by total assets", "Loss ratio plus expense ratio", "GWP minus net earned premium", "Investment income as a percentage of claims"], "a": 1, "d": "medium", "e": "The combined ratio equals the loss ratio (claims divided by earned premium) plus the expense ratio. Below 100% indicates underwriting profit; above 100% means underwriting loss."}, {"s": "A combined ratio of 108% means the insurer is:", "o": ["Making a strong underwriting profit", "Paying 1.08 pounds in claims and expenses per 1 pound of premium", "Generating 8% return on equity", "Retaining 8% of premium after costs"], "a": 1, "d": "easy", "e": "A combined ratio of 108% means the insurer pays out 1.08 pounds in claims and expenses for every 1 pound of premium earned \u2014 an underwriting loss. Investment income may still produce overall profit."}, {"s": "The sum insured on reinstatement basis should represent:", "o": ["Market value of the property", "Full rebuilding cost including demolition and professional fees", "Original purchase price", "Expected selling price after loss"], "a": 1, "d": "medium", "e": "On reinstatement basis the sum insured equals the full cost of rebuilding including demolition, professional fees (architects, surveyors), and construction costs at current rates."}, {"s": "The condition of average clause applies when:", "o": ["The insured has two policies", "The property is underinsured at the time of loss", "The claim is above the policy limit", "The insurer suspects fraud"], "a": 1, "d": "medium", "e": "Average applies when the insured value is less than actual value. Claims are reduced proportionately: claim paid equals (sum insured divided by actual value) multiplied by the loss amount."}, {"s": "A commercial combined policy typically includes:", "o": ["Personal lines motor only", "Property, liability, and business interruption", "Life and health exclusively", "Marine cargo and hull only"], "a": 1, "d": "easy", "e": "A commercial combined policy is a package for businesses typically including property, business interruption, liability (employers, public, products), money, and goods in transit."}, {"s": "Employers liability insurance in the UK is compulsory under:", "o": ["Health and Safety at Work Act 1974", "Employers Liability Compulsory Insurance Act 1969", "Occupiers Liability Act 1957", "Corporate Manslaughter Act 2007"], "a": 1, "d": "easy", "e": "The ELCIA 1969 requires UK employers to hold at least 5 million pounds EL insurance to cover legal liability to employees injured through work. The certificate must be displayed and records retained for 40 years."}, {"s": "The underwriting cycle describes:", "o": ["Annual policy renewal process", "Alternating soft and hard market conditions", "Time taken to underwrite a complex risk", "The FCA's periodic review of underwriters"], "a": 1, "d": "medium", "e": "The underwriting cycle describes oscillation between hard markets (high premiums, restricted capacity) and soft markets (competitive premiums, abundant capacity), driven by capital flows, losses, and investment returns."}, {"s": "A quota share treaty means:", "o": ["Reinsurer pays losses above a fixed retention", "Reinsurer takes a fixed percentage of every risk written", "Insurer selects which risks to cede", "Reinsurance placed risk by risk"], "a": 1, "d": "medium", "e": "In quota share the cedant cedes and the reinsurer accepts a fixed percentage of every risk in the class. Premium and losses are shared in the same percentage, helping cedants manage capacity."}, {"s": "What typically leads to a hard insurance market?", "o": ["Excess capacity and strong investment returns", "Large catastrophe losses reducing market capacity", "High competition from new entrants", "Falling reinsurance premiums"], "a": 1, "d": "medium", "e": "Hard markets follow events that erode capital \u2014 major catastrophes, poor investment returns, large liability verdicts. With reduced capacity insurers raise premiums, restrict terms, and limit cover."}, {"s": "Excess of loss reinsurance protects against:", "o": ["High frequency of small claims", "Losses exceeding the retention up to the layer limit", "Losses from unrated territories", "Another insurer's insolvency"], "a": 1, "d": "medium", "e": "XL reinsurance pays losses above the cedant's self-insured retention up to the layer limit. It can be per-risk, per-occurrence, or aggregate."}, {"s": "Experience rating means:", "o": ["Rating based on industry averages", "Adjusting premium based on the insured's own claims history", "Providing discounts for long-standing customers", "Rating based on location only"], "a": 1, "d": "medium", "e": "Experience rating adjusts premium based on the insured's own claims record relative to expected losses. Good experience earns reductions; poor experience leads to increases. Common for large accounts."}, {"s": "Catastrophe modelling in insurance involves:", "o": ["Analysing past catastrophes to settle historical claims", "Using probabilistic models to estimate financial impact of natural disasters", "Designing buildings to withstand catastrophes", "Setting regulatory capital for catastrophe risk"], "a": 1, "d": "hard", "e": "Cat modelling uses probabilistic simulation to estimate the frequency and severity of natural catastrophes and their potential insured losses \u2014 informing pricing, capacity management, and capital requirements."}, {"s": "Retroactive date on a professional indemnity policy is:", "o": ["The date the policy expires", "The earliest date from which covered work is included", "The date the claim is notified", "The date premium is paid"], "a": 1, "d": "hard", "e": "The retroactive date on a claims-made PI policy is the earliest date of work performance that will be covered. Claims from work performed before this date are excluded \u2014 continuity of cover is essential."}, {"s": "In motor underwriting a debit refers to:", "o": ["A claims payment deduction", "A loading to increase premium above the standard rate", "A discount for good driving", "An excess to reduce premium"], "a": 1, "d": "medium", "e": "In motor underwriting a debit is an additional loading to the standard premium to reflect increased risk such as convictions, young drivers, or high-performance vehicles. A credit is a reduction for favourable factors."}, {"s": "Net premium income means:", "o": ["Gross premium minus claims", "Premium income after deducting reinsurance premiums ceded", "Premium after broker commission only", "Earned premium for the period"], "a": 1, "d": "medium", "e": "Net premium income is the premium the insurer retains after paying reinsurance premiums to reinsurers. It represents the net risk premium retained by the insurer after reinsurance protection."}, {"s": "Cash flow underwriting involves:", "o": ["Underwriting only cash-based businesses", "Writing business at a loss expecting investment income to compensate", "Collecting premiums in cash only", "Using cash flow models to price risks"], "a": 1, "d": "hard", "e": "Cash flow underwriting involves deliberately underpricing risks expecting that investment returns on premium held before claims will more than compensate for underwriting losses. More viable when interest rates are high."}, {"s": "An aggregate limit in a liability policy is:", "o": ["The limit per individual claim", "Maximum total the insurer pays for all claims in the policy period", "Minimum claims threshold", "Reinsurance recovery cap"], "a": 1, "d": "medium", "e": "The aggregate limit is the maximum total amount the insurer will pay for all claims during the policy period regardless of the number of claims. Once reached the policy is exhausted for that period."}, {"s": "Premium leakage in underwriting refers to:", "o": ["Premium payments that fail to clear", "The gap between premium charged and premium adequate to reflect actual risk", "Investment losses on premium float", "Claims paid outside policy terms"], "a": 1, "d": "hard", "e": "Premium leakage occurs where the premium collected does not adequately reflect the actual risk \u2014 from underrating, excessive discounting, or failure to update sums insured. It erodes underwriting profitability."}, {"s": "Occupancy as an underwriting factor means:", "o": ["The proportion of property occupied", "The nature of business activities conducted in a building", "The number of occupants", "Whether the building is owner-occupied or rented"], "a": 1, "d": "medium", "e": "Occupancy describes what activities take place in a building. A paint factory has very different fire risk to a bank office. Occupancy is one of the most important rating factors in commercial property underwriting."}, {"s": "A line slip in the London market allows:", "o": ["Underwriters to bind risks within agreed parameters without full re-underwriting for each", "Brokers to trade without regulation", "Insureds to select their own premiums", "Reinsurers to cancel mid-term"], "a": 0, "d": "hard", "e": "A line slip is a delegated authority where lead underwriters pre-agree terms for a defined class. Brokers can bind risks within those parameters without returning to the market for each placement."}, {"s": "Technical pricing in underwriting means:", "o": ["Pricing based on competitor rates", "Pricing derived from loss models reflecting actual risk characteristics", "Pricing set by the FCA", "Pricing inflated to cover technology costs"], "a": 1, "d": "medium", "e": "Technical pricing uses actuarial and statistical modelling to determine the premium needed to cover expected losses, expenses, and return on capital for a specific risk \u2014 independent of market rate fluctuations."}, {"s": "Per-occurrence catastrophe XL reinsurance protects against:", "o": ["Individual large risks", "Accumulations of losses from a single natural catastrophe event affecting many policyholders", "All classes of business", "High-frequency low-severity losses"], "a": 1, "d": "hard", "e": "Per-occurrence (catastrophe) XL reinsurance protects against accumulations of losses from a single event affecting many policyholders simultaneously such as a hurricane, flood, or earthquake."}, {"s": "Fleet underwriting in motor insurance involves:", "o": ["Individual vehicle underwriting", "All vehicles of an organisation under one policy with aggregate rating", "Writing only commercial vehicle risks", "Underwriting racing vehicles"], "a": 1, "d": "easy", "e": "Fleet motor policies cover all vehicles owned or operated by an organisation (typically 5 or more) under one policy with a single renewal date. Rating reflects the fleet's own claims experience."}, {"s": "Coinsurance in commercial property means:", "o": ["Two insurers independently cover the same risk for full value", "Multiple insurers each cover an agreed percentage of the risk", "The insured acts as their own insurer", "The insurer and reinsurer split losses equally"], "a": 1, "d": "medium", "e": "Coinsurance involves multiple insurers each taking a defined percentage share of a risk, with each paying their proportion of any valid claim. Premium is also split in the same proportions."}, {"s": "Earned premium represents:", "o": ["Premium collected in cash during the year", "The portion of written premium relating to the expired portion of the policy", "Total premium written during the year", "Premium net of reinsurance"], "a": 1, "d": "medium", "e": "Earned premium is the portion of written premium corresponding to the expired period of the policy. For a 12-month policy at mid-year 50% is earned and 50% is unearned premium reserve."}, {"s": "Underinsurance occurs when:", "o": ["An insured takes out more cover than needed", "The sum insured is less than the actual value at risk", "The insurer underprices the risk", "The policy has too many exclusions"], "a": 1, "d": "easy", "e": "Underinsurance occurs when the sum insured is lower than the true value of the insured property at time of loss. This typically triggers the average clause, reducing claims proportionately."}, {"s": "A fronting arrangement means:", "o": ["A direct insurer writing for its own account", "A licensed insurer issues a policy but transfers most risk to another entity often a captive", "A broker acting as insurer", "An insurer specialising in front office cover"], "a": 1, "d": "hard", "e": "Fronting involves an admitted, licensed insurer issuing a policy for regulatory compliance on behalf of another entity \u2014 typically a captive \u2014 to which virtually all risk is transferred by reinsurance."}, {"s": "A named perils policy:", "o": ["Covers all causes of loss", "Covers only the specific causes of loss listed", "Has no exclusions", "Covers only named insureds"], "a": 1, "d": "easy", "e": "A named perils or specified perils policy covers only the specific causes of loss listed. An all risks policy takes the opposite approach \u2014 covering all causes except those specifically excluded."}, {"s": "Delegated underwriting authority means:", "o": ["The FCA delegating powers to insurers", "Insurers authorising brokers or MGAs to bind risks on their behalf within defined parameters", "Lloyd's delegating to the PRA", "Reinsurers delegating capacity to cedants"], "a": 1, "d": "medium", "e": "Delegated authority (binding authority) allows an insurer to authorise a third party such as a broker, MGA, or coverholder to underwrite and bind risks on its behalf within agreed parameters without prior approval."}, {"s": "Adverse development cover ADC protects against:", "o": ["New business written in adverse markets", "Reserve strengthening on prior year claims beyond a defined threshold", "Adverse weather events", "Insurance startups entering the market"], "a": 1, "d": "hard", "e": "ADC is retrospective reinsurance protecting an insurer's existing reserves against adverse development \u2014 if actual claims on prior years exceed the reserved amount beyond a defined threshold."}, {"s": "Key person insurance is:", "o": ["Cover for the insurer's CEO", "Life or income protection on an individual whose loss would cause financial damage to the business", "Cover for celebrity endorsements", "Directors and officers liability"], "a": 1, "d": "easy", "e": "Key person insurance protects a business against the financial impact of losing an individual whose skills, relationships, or knowledge are critical to the business's profitability or operations."}, {"s": "Rate on line ROL in XL reinsurance is:", "o": ["Number of risks per line of capacity", "Reinsurance premium as a percentage of the layer limit", "Reinsurer's expense ratio", "Cedant's retention as a percentage of premium"], "a": 1, "d": "hard", "e": "ROL is the reinsurance premium expressed as a percentage of the XL layer limit. The implied payback period equals 1 divided by ROL \u2014 for example a 10% ROL implies the reinsurer expects to pay the full layer once every 10 years."}, {"s": "Stop loss reinsurance is triggered when:", "o": ["An individual large loss exceeds the retention", "The cedant's aggregate loss ratio exceeds a defined threshold", "Catastrophe losses occur", "The reinsurer's own loss ratio deteriorates"], "a": 1, "d": "hard", "e": "Stop loss (aggregate XL) reinsurance is triggered when the cedant's total loss ratio for a portfolio in a period exceeds a defined level. The reinsurer pays the excess above that threshold."}, {"s": "Probable maximum loss PML in property underwriting is:", "o": ["The most likely small loss", "The largest loss likely assuming normal protective features work", "The worst possible loss assuming everything fails", "The average of all past losses"], "a": 1, "d": "hard", "e": "PML estimates the largest loss likely from a single event assuming normal but not perfect protective and firefighting measures function. Used to determine underwriting limits and reinsurance needs."}, {"s": "An extended reporting period ERP on a claims-made policy is:", "o": ["Time to investigate a claim", "An extended post-expiry window to notify claims from prior acts", "The policy inception period", "Time limit for the insurer to accept a risk"], "a": 1, "d": "hard", "e": "The ERP or discovery period on a claims-made policy gives the insured a defined post-expiry window to report claims arising from acts during the policy period \u2014 protecting against late-emerging claims."}, {"s": "Products liability covers:", "o": ["Damage to the insured's own products", "Injury or damage caused to third parties by the insured's products", "Loss of profit from defective products", "Recall costs for defective products"], "a": 1, "d": "easy", "e": "Products liability covers the insured's legal liability for bodily injury or property damage caused to third parties by products supplied, manufactured, or repaired. Typically combined with public liability cover."}, {"s": "A surplus treaty in reinsurance means:", "o": ["The ceded amount is a fixed percentage", "The cedant retains a fixed monetary amount per risk and cedes the surplus", "The reinsurer takes all losses above a threshold", "Reinsurance is placed per occurrence"], "a": 1, "d": "hard", "e": "In a surplus treaty the cedant retains a fixed monetary retention per risk and cedes the surplus excess to the reinsurer up to an agreed maximum. The cession percentage varies by risk size."}, {"s": "Indemnity basis settlement in property insurance means:", "o": ["Paying reinstatement cost", "Paying market value less depreciation", "Paying new for old replacement", "Paying original purchase price"], "a": 1, "d": "medium", "e": "On indemnity basis settlement reflects the actual pre-loss value \u2014 typically replacement cost less depreciation for age and wear. The default basis for most property policies unless reinstatement is selected."}, {"s": "Minimum and deposit premium in adjustable policies means:", "o": ["Penalty for early cancellation", "Provisional premium paid upfront with final adjustment based on actual exposure", "A deposit held against future claims", "Minimum premium to qualify for cover"], "a": 1, "d": "medium", "e": "Adjustable policies charge a provisional minimum and deposit premium. At year-end the premium is adjusted up or down based on actual exposures such as vehicles, turnover, or wages declared by the insured."}, {"s": "Gross of reinsurance underwriting performance measures:", "o": ["Performance before accounting for reinsurance recoveries", "Performance including all reinsurance income", "Performance net of all claims", "Performance including investment income"], "a": 0, "d": "hard", "e": "Gross of reinsurance performance measures the insurer's underwriting result before taking into account reinsurance recoveries or costs \u2014 reflecting the underlying direct business written."}, {"s": "The burning cost ratio for XL reinsurance pricing is:", "o": ["The reinsurer's expense ratio", "Actual XL recoveries expressed as a percentage of subject premium", "The cedant's claims frequency", "Annual premium income of the cedant"], "a": 1, "d": "hard", "e": "The burning cost for XL pricing is historical actual losses that would have been recoverable under the proposed XL layer, expressed as a percentage of the cedant's subject premium \u2014 the starting point for rate negotiation."}, {"s": "Run-off in insurance means:", "o": ["Short-term emergency cover", "A company that ceased writing new business but continues managing existing claims", "An insurer's premium discounting strategy", "Annual reinsurance renewal process"], "a": 1, "d": "medium", "e": "Run-off occurs when an insurer or line of business ceases underwriting new risks but continues to administer and pay claims on existing policies. Run-off management can last decades for long-tail classes."}, {"s": "EML in property underwriting stands for:", "o": ["Estimated Maximum Loss \u2014 the largest expected loss under assumed conditions", "Expected Minimum Loss", "Exposure Management Level", "Excess and Modified Loss"], "a": 0, "d": "hard", "e": "EML (Estimated Maximum Loss) is the underwriter's assessment of the maximum loss expected from a single event, assuming the best probable operation of protective devices such as sprinklers and fire suppression."}, {"s": "An aggregate deductible in commercial insurance means:", "o": ["An excess applying to each individual claim", "A total deductible applying to all claims in the policy period", "A deductible for aggregate property values", "A reinsurance deductible"], "a": 1, "d": "hard", "e": "An aggregate deductible is the total amount the insured retains across all claims during the policy period. Once total claims exceed it the insurer begins paying. Used by large corporates to retain small losses."}, {"s": "Institute Cargo Clauses A in marine cargo provides:", "o": ["Named perils cover only", "All risks cover subject to exclusions", "War risks cover only", "Transit cover only"], "a": 1, "d": "medium", "e": "ICC A is the broadest marine cargo cover providing all-risks protection \u2014 all causes of loss except those specifically excluded. ICC B and C provide progressively narrower named-perils cover."}, {"s": "Technical pricing differs from market pricing in that:", "o": ["Technical pricing is always lower", "Technical pricing is based on risk modelling not market rates", "Market pricing is more accurate", "Technical pricing excludes expenses"], "a": 1, "d": "medium", "e": "Technical pricing uses actuarial modelling based on actual risk characteristics. Market pricing reflects what the market will bear. In soft markets, market prices often fall below technical levels creating inadequate premium."}, {"s": "A swing rated treaty is one where:", "o": ["Premium varies with investment markets", "The final premium reflects actual loss experience within minimum and maximum rates", "The cession percentage varies", "The reinsurer can cancel for poor results"], "a": 1, "d": "hard", "e": "A swing rated or adjustable treaty has a provisional premium adjusted at year end based on actual claims experience within agreed minimum and maximum rates. It aligns cedant and reinsurer interests on loss experience."}, {"s": "Treaty capacity in reinsurance is:", "o": ["Number of risks a reinsurer can write", "Maximum amount of business a treaty can accommodate", "Reinsurer's total assets", "Number of cedants in a treaty"], "a": 1, "d": "hard", "e": "Treaty capacity is the maximum amount of risk by premium or sum insured that a reinsurance treaty can accommodate. Once capacity is exhausted additional risks must be placed facultatively or with another treaty."}, {"s": "Index linking in property insurance protects against:", "o": ["Market value falls", "Underinsurance caused by inflation in rebuilding costs", "Claims inflation", "Premium increases"], "a": 1, "d": "easy", "e": "Index linking automatically adjusts the sum insured in line with a relevant building cost index at renewal, preventing underinsurance from occurring as construction costs rise over the policy period."}, {"s": "Claims frequency as a performance metric measures:", "o": ["How quickly claims are settled", "The number of claims per policy or exposure unit in a period", "Percentage of claims disputed", "Claims paid as percentage of premium"], "a": 1, "d": "medium", "e": "Claims frequency measures the rate at which claims occur \u2014 number of claims per policy or per unit of exposure. Rising frequency is an early indicator of deteriorating underwriting performance."}, {"s": "A long-term arrangement LTA benefits the insured by:", "o": ["Providing unlimited cover", "Offering rate certainty and stability over multiple years", "Eliminating all excesses", "Guaranteeing no claims will be rejected"], "a": 1, "d": "medium", "e": "An LTA provides the insured with premium certainty (rate guarantee or freeze) over the agreed period, and may offer a discount for the commitment to renew \u2014 valuable in volatile markets."}, {"s": "Catastrophe excess of loss reinsurance is designed for:", "o": ["Individual large risks", "Accumulations of losses from a single natural catastrophe event", "All classes of business", "High-frequency low-severity losses"], "a": 1, "d": "medium", "e": "Cat XL reinsurance responds to accumulations of losses from a single catastrophe event affecting many policyholders simultaneously such as windstorm, earthquake, or flood \u2014 not individual large risks."}, {"s": "Aggregate stop loss reinsurance pays when:", "o": ["An individual loss is very large", "Total losses in a period exceed an aggregate retention", "A single catastrophe occurs", "Losses exceed a per-risk retention"], "a": 1, "d": "hard", "e": "Aggregate stop loss reinsurance is triggered when total losses for a portfolio in a defined period exceed the aggregate retention (often expressed as a loss ratio percentage), providing protection against a bad overall year."}, {"s": "The burning cost method of XL pricing is most reliable when:", "o": ["The risk has no claims history", "There is sufficient volume of historical claims data", "Market conditions are soft", "The retention is very high"], "a": 1, "d": "hard", "e": "Burning cost analysis is most reliable when there is substantial historical claims data. For low-frequency high-severity events historical data may be insufficient and catastrophe modelling must supplement the analysis."}, {"s": "Premium volume in underwriting refers to:", "o": ["Weight of paper premium documentation", "Total written premium income during a period", "Number of policies written", "Reinsurer's share of premium"], "a": 1, "d": "easy", "e": "Premium volume is the total amount of premium income booked during a period. A key measure of size and growth but must be considered alongside profitability metrics like loss ratio and combined ratio."}, {"s": "In commercial underwriting a deductible buy-down means:", "o": ["Reducing the premium by accepting a higher deductible", "Purchasing additional cover to reduce the insured's retention below the standard deductible", "Buying reinsurance to cover the deductible", "Reducing the deductible to zero"], "a": 1, "d": "hard", "e": "A deductible buy-down or deductible buyback policy sits between the insured's deductible and the primary policy layer, covering losses that would otherwise fall within the insured's own retention. It reduces the net deductible."}, {"s": "A managing general agent MGA is:", "o": ["A type of Lloyd's syndicate", "A delegated authority carrier that underwrites and binds business on behalf of an insurer within agreed parameters", "A reinsurance broker", "A government insurance regulator"], "a": 1, "d": "medium", "e": "An MGA (Managing General Agent) is a specialist intermediary with delegated authority from an insurer or capacity provider to underwrite, price, and bind risks in a defined class \u2014 combining underwriting and distribution functions."}], "IF4": [{"s": "What is typically the first step when a claim is notified?", "o": ["Appoint a loss adjuster", "Acknowledge receipt and verify policy validity", "Offer immediate settlement", "Refer to legal department"], "a": 1, "d": "easy", "e": "The first step is to acknowledge receipt and verify that a valid policy exists, it was in force at the time of loss, and the claimed event is potentially covered \u2014 before any investigation or payment."}, {"s": "A loss adjuster is typically:", "o": ["The insured's representative", "An independent professional appointed by the insurer to investigate and quantify claims", "An arbitrator between insurer and insured", "A subrogation recovery specialist"], "a": 1, "d": "easy", "e": "A loss adjuster is an independent professional appointed by the insurer to investigate the circumstances of a claim, establish liability, and assess the quantum of loss \u2014 providing expert, impartial assessment."}, {"s": "Betterment in property claims is:", "o": ["An improvement made before a loss", "A deduction where repairs result in the property being better than before the loss", "Additional cover added after a claim", "Settlement exceeding the policy limit"], "a": 1, "d": "medium", "e": "Betterment is applied when repairs or replacement result in the insured being better off than before the loss. A deduction maintains the indemnity principle \u2014 the insured should not profit from a claim."}, {"s": "The Motor Insurers Bureau MIB compensates victims of:", "o": ["Fraudulent claims", "Accidents with uninsured or untraced drivers", "Insolvent insurers", "Policyholders who underinsure"], "a": 1, "d": "easy", "e": "The MIB compensates innocent victims of road accidents caused by uninsured drivers (Uninsured Drivers Agreement) and hit-and-run drivers (Untraced Drivers Agreement). Funded by UK motor insurers."}, {"s": "Subrogation in claims means the insurer's right to:", "o": ["Cancel the policy after paying a claim", "Pursue recovery from a responsible third party after indemnifying the insured", "Increase the premium after a loss", "Request additional information from the insured"], "a": 1, "d": "easy", "e": "Subrogation allows the insurer having paid a claim to stand in the insured's shoes and recover the loss from any negligent third party who caused it. The insurer cannot recover more than it paid."}, {"s": "FNOL stands for:", "o": ["Final Notice of Loss", "First Notification of Loss", "Financial Net of Liability", "Formal Notice of Legal Action"], "a": 1, "d": "easy", "e": "FNOL is First Notification of Loss \u2014 the initial report of a claim. Efficient FNOL enables early investigation, fraud detection, appointment of experts, and faster resolution."}, {"s": "A without prejudice settlement offer means:", "o": ["The insurer admits full liability", "The offer cannot be used as evidence of liability in legal proceedings", "The insurer waives the right to investigate", "The claim is referred to the FOS"], "a": 1, "d": "medium", "e": "Without prejudice protects settlement negotiations from being used as admissions of liability in court. Insurers make such offers to resolve claims commercially without conceding legal liability."}, {"s": "The indemnity period in business interruption insurance is:", "o": ["The policy period", "Maximum period during which BI losses will be paid after a covered event", "Time within which a claim must be notified", "Time to rebuild the damaged property"], "a": 1, "d": "medium", "e": "The BI indemnity period is chosen by the insured at inception and represents the maximum duration for which the insurer will pay loss of profit or increased costs following a covered material damage event."}, {"s": "Claims inflation refers to:", "o": ["More claims than prior year", "Rising repair costs and compensation awards over time", "Insurers increasing premiums", "Currency fluctuations on overseas claims"], "a": 1, "d": "easy", "e": "Claims inflation is the tendency for the cost of claims to increase over time due to rising labour, material, medical, and legal costs, and increasing court award levels. A key consideration in reserving and pricing."}, {"s": "Reserving in claims management means:", "o": ["Setting aside funds to cover expected future claim payments", "The insured reserving the right to appeal", "The reinsurer holding premium", "A legal injunction on a disputed claim"], "a": 0, "d": "easy", "e": "A claims reserve is the amount set aside by the insurer to cover the estimated future cost of a claim or portfolio of claims that has been notified but not yet fully settled."}, {"s": "Insurance fraud in the form of staging an accident is a criminal offence under:", "o": ["Civil wrong only", "Fraud Act 2006", "Road Traffic Act 1988", "Insurance Act 2015"], "a": 1, "d": "medium", "e": "Deliberately staging or exaggerating an insurance claim constitutes fraud under the Fraud Act 2006. Insurers pursue fraud through IFED (Insurance Fraud Enforcement Department) and civil recovery."}, {"s": "Which claims practice is consistent with FCA Treating Customers Fairly?", "o": ["Delaying valid claims to manage cash flow", "Settling all claims regardless of validity", "Clear timely communication and fair settlements", "Refusing claims where receipts cannot be provided"], "a": 2, "d": "easy", "e": "TCF in claims requires fair assessment, prompt and clear communication, not unreasonably rejecting claims, settling valid claims promptly, and handling complaints effectively."}, {"s": "A loss assessor differs from a loss adjuster in that they:", "o": ["Are appointed by the insurer", "Act on behalf of the policyholder", "Are independent of both parties", "Only work on commercial property claims"], "a": 1, "d": "medium", "e": "A loss assessor is appointed by and acts for the insured (policyholder) to manage their claim and negotiate with the insurer. A loss adjuster acts for the insurer. Both aim for fair settlement but from opposing sides."}, {"s": "Quantum in liability claims refers to:", "o": ["Whether the insured is legally liable", "The monetary value of damages payable", "The number of claimants", "The jurisdiction of the claim"], "a": 1, "d": "easy", "e": "Quantum is the monetary value of a claim \u2014 the amount of damages payable to compensate the claimant. Establishing quantum involves valuing all heads of damage including general and special damages."}, {"s": "The Third Parties Rights Against Insurers Act 2010 allows:", "o": ["Third parties to override policy exclusions", "Claimants to sue the insurer directly if the insured is insolvent", "All liability policies to include third party cover", "The FOS to award damages against insurers"], "a": 1, "d": "hard", "e": "The 2010 Act allows a third party with a claim against an insolvent insured to bring a direct action against that insured's insurer without first pursuing the insured's estate through separate proceedings."}, {"s": "General damages in personal injury claims compensate for:", "o": ["Actual financial losses suffered", "Non-financial losses such as pain suffering and loss of amenity", "Property damage", "Punitive awards"], "a": 1, "d": "medium", "e": "General damages compensate for non-quantifiable losses \u2014 primarily pain and suffering, loss of amenity (ability to enjoy life). They are assessed by reference to the Judicial College Guidelines."}, {"s": "Special damages in personal injury claims represent:", "o": ["Damages assessed by a special court", "Actual quantifiable past financial losses such as lost earnings and medical expenses", "Damages for emotional distress", "Punitive awards"], "a": 1, "d": "medium", "e": "Special damages are quantifiable financial losses incurred up to trial \u2014 lost earnings, medical costs, care costs, travel, and property damage. They must be specifically pleaded and proved."}, {"s": "The Ogden Tables are used to:", "o": ["Calculate pain and suffering awards", "Calculate the present value of future financial losses", "Determine liability in road accidents", "Assess property damage claims"], "a": 1, "d": "hard", "e": "The Ogden Tables provide actuarial multipliers to calculate lump sums compensating for future financial losses \u2014 particularly future lost earnings and care costs in catastrophic injury claims."}, {"s": "The Ogden discount rate affects:", "o": ["The insurer's investment return only", "The present value calculation of future losses \u2014 a lower rate increases lump sums", "Legal costs assessed by courts", "Reinsurance recovery calculations"], "a": 1, "d": "hard", "e": "The Ogden discount rate reflects expected investment returns on the lump sum award. The current negative rate in England and Wales increases lump sums because claimants cannot safely invest at high returns."}, {"s": "Rehabilitation in personal injury claims involves:", "o": ["Rebuilding damaged property", "Early medical intervention to improve recovery and reduce long-term claim cost", "Retraining insurance staff", "Settling claims quickly"], "a": 1, "d": "medium", "e": "Rehabilitation involves early medical and occupational intervention to help injured claimants recover as fully and quickly as possible. It benefits claimants and can significantly reduce total claim costs."}, {"s": "Credit hire claims arise when:", "o": ["Claimants hire a credit card company", "An at-fault insurer disputes the cost of a replacement vehicle provided on credit to the not-at-fault party", "Medical treatment is provided on credit", "Legal fees are charged on credit"], "a": 1, "d": "hard", "e": "Credit hire involves replacement vehicles provided to not-at-fault claimants at no upfront cost, with the hire company recovering from the at-fault insurer. Credit hire rates are often disputed as excessive."}, {"s": "The Official Injury Claim OIC portal handles:", "o": ["FCA injury reporting", "Low-value whiplash RTA claims under the whiplash reforms", "NHS claims", "MIB injury databases"], "a": 1, "d": "hard", "e": "The OIC portal launched in 2021 implements the Civil Liability Act 2018 whiplash reforms. Claimants with soft tissue RTA injuries up to 5000 pounds must use the portal with fixed tariff damages."}, {"s": "Ex turpi causa in insurance means:", "o": ["Paying a claim generously", "A claim arising from the insured's own illegal act cannot be pursued", "Claims must be settled promptly", "All perils are covered"], "a": 1, "d": "hard", "e": "Ex turpi causa non oritur actio means no action arises from a dishonorable cause. If the insured suffers loss while committing an illegal act the claim may be denied on public policy grounds."}, {"s": "Contribution in claims means:", "o": ["The insured's own contribution to their loss", "Where two or more policies cover the same loss each pays a proportionate share", "Payment to charity after a claim", "Contribution to legal defence costs"], "a": 1, "d": "medium", "e": "Contribution prevents the insured recovering more than their actual loss when two or more policies cover the same interest. Each insurer pays a rateable share typically based on sums insured proportions."}, {"s": "Salvage in claims handling is:", "o": ["Property recovered or sold after a total loss to reduce the insurer's net cost", "Emergency repairs after a loss", "Funds recovered from a negligent third party", "Legal costs recovered after litigation"], "a": 0, "d": "medium", "e": "Salvage is the residual value of damaged or recovered property. After paying a total loss the insurer takes title to the salvage and sells it, reducing the net cost of the claim."}, {"s": "A Part 36 offer in civil litigation is:", "o": ["An offer to refer to arbitration", "A formal settlement offer with cost consequences if not beaten at trial", "An insurer's standard claims form", "A payment to FOS as deposit"], "a": 1, "d": "hard", "e": "A Part 36 offer is a formal settlement offer under the CPR with defined cost consequences. If rejected and the offeree fails to beat the offer at trial they face adverse cost orders \u2014 incentivising proportional risk assessment."}, {"s": "Claims leakage is:", "o": ["Confidential claims data being disclosed", "The difference between what was paid on a claim and the optimal fair settlement", "Claims payments made in cash", "Premium returned unpaid"], "a": 1, "d": "hard", "e": "Claims leakage is the gap between what a claim actually costs and what it should have cost if handled optimally \u2014 including overpayments, missed recoveries, unnecessary extras, and poor negotiation."}, {"s": "A motor total loss occurs when:", "o": ["Any loss over 1000 pounds", "Repair costs exceed the vehicle's pre-accident market value", "Airbags have deployed", "No third party is involved"], "a": 1, "d": "easy", "e": "A motor total loss occurs when repair costs plus salvage value equals or exceeds the vehicle's pre-accident market value, or damage is so severe it cannot safely be repaired."}, {"s": "A category A vehicle write-off means:", "o": ["The vehicle can be repaired with minor work", "The vehicle must be crushed and no parts can be salvaged", "The vehicle can be repaired to a roadworthy standard", "The vehicle is a write-off only for insurance purposes"], "a": 1, "d": "hard", "e": "Category A write-offs must be crushed \u2014 they cannot be repaired and no parts should be salvaged. Category B can have parts salvaged but the body shell must be crushed. Categories S and N may return to the road."}, {"s": "Contribution between insurers is based on:", "o": ["Which policy was taken out first", "A proportionate share based on sums insured or independent liability", "The higher premium insurer pays first", "A court decision"], "a": 1, "d": "medium", "e": "Contribution between co-insurers is calculated either by the independent liability method or by ratios of sums insured, preventing double recovery while sharing the burden fairly between insurers."}, {"s": "Recoveries in a claims department include:", "o": ["Premium recovered from lapsed policies", "Money received from third parties reducing net claim cost", "Claims reserves released", "Reinsurance premium receipts"], "a": 1, "d": "medium", "e": "Recoveries are amounts received by the insurer from third parties reducing net claims cost \u2014 subrogation recoveries from negligent parties, contribution from co-insurers, and salvage proceeds."}, {"s": "A valid basis for repudiating a claim does NOT include:", "o": ["A policy exclusion applies", "Cover was not in force at time of loss", "The insured chose the wrong insurer", "Fraudulent misrepresentation in the claim"], "a": 2, "d": "medium", "e": "Choosing a different insurer is not grounds for repudiation. Valid grounds include applicable exclusions, no cover in force, breach of conditions, non-disclosure at inception, and fraud in presenting the claim."}, {"s": "CILA is:", "o": ["Chartered Insurance Lawyers Association", "Chartered Institute of Loss Adjusters", "Claims and Insurance Liability Association", "Credit Insurance and Liability Association"], "a": 1, "d": "easy", "e": "CILA (Chartered Institute of Loss Adjusters) is the professional body for loss adjusters in the UK, setting professional standards, providing qualifications, and promoting best practice in loss adjusting."}, {"s": "An interim payment in claims is:", "o": ["The first premium instalment", "A partial payment made before the claim is fully settled", "Payment pending FOS decision", "Monthly claims reserve updates"], "a": 1, "d": "easy", "e": "An interim payment is a partial payment to the insured or claimant before the claim is fully assessed and settled \u2014 useful in large or complex claims where funds are needed urgently."}, {"s": "Exaggerated fraud differs from invented fraud in that:", "o": ["Both are equally easy to detect", "Exaggerated fraud inflates a genuine loss while invented fraud creates a completely false claim", "Exaggerated fraud is not criminal", "Invented fraud is harder to detect"], "a": 1, "d": "medium", "e": "Exaggerated (padding) fraud involves inflating the value of a genuine loss. Invented (opportunistic) fraud involves claiming for an event that never happened. Both are criminal offences under the Fraud Act 2006."}, {"s": "Breach of statutory duty in employers liability claims means:", "o": ["Failure to report a claim on time", "Failure by an employer to comply with health and safety legislation causing employee injury", "Breach of the employment contract", "Failure to pay employer's national insurance contributions"], "a": 1, "d": "medium", "e": "Many health and safety regulations impose duties on employers. Breach causing injury to an employee can give rise to civil liability \u2014 the basis of many EL claims alongside common law negligence."}, {"s": "First party insurance covers:", "o": ["Third party liability", "The insured's own losses", "A party not named in the policy", "A reinsurance arrangement"], "a": 1, "d": "easy", "e": "First party insurance covers the insured's own losses \u2014 such as own damage motor cover, property insurance, and business interruption insurance. Third party insurance covers liability to others."}, {"s": "Reservation of rights in claims means:", "o": ["The insurer reserves funds to pay the claim", "Notice that the insurer is investigating while reserving its right to decline if grounds exist", "The insured reserves the right to appeal", "Reserving next year's premium"], "a": 1, "d": "hard", "e": "Reservation of rights is a notice from the insurer handling a claim while reserving its rights to decline coverage based on specific grounds such as a potential exclusion \u2014 preventing waiver of coverage defences."}, {"s": "Subrogation waiver means:", "o": ["The insurer waives the right to investigate claims", "The insurer agrees not to exercise subrogation rights against specified third parties", "The insured waives the right to make a claim", "Premium is waived on subrogated recoveries"], "a": 1, "d": "hard", "e": "A subrogation waiver is an agreement by the insurer not to pursue subrogation rights against specified parties \u2014 for example a tenant is not pursued by the landlord's insurer for accidental damage."}, {"s": "Latent defect insurance covers:", "o": ["Visible damage only", "Damage from inherent structural defects manifesting after construction", "Planned maintenance costs", "Earthquake damage"], "a": 1, "d": "hard", "e": "Latent defect (inherent defect) insurance covers structural damage from design, material, or construction defects not discoverable at construction time but emerging later \u2014 typically a 10-year policy from practical completion."}, {"s": "Knock for knock agreement means:", "o": ["Physical inspection of vehicles is required before settlement", "Each insurer pays their own insured's claim regardless of fault", "All claims are settled within 24 hours", "An agreement between the MIB and insurers"], "a": 1, "d": "medium", "e": "Knock for knock means each insurer pays their own policyholder's first-party claim regardless of fault, avoiding inter-insurer liability disputes. No-claims discounts may still be affected by fault determination."}, {"s": "Claims development to an actuary means:", "o": ["Developing new claims products", "How the estimated cost of claims evolves from initial reserve to final settlement", "Claims team professional development", "Developing fraud detection techniques"], "a": 1, "d": "hard", "e": "Claims development refers to how the estimated ultimate cost of claims changes over time as more information becomes available. Actuaries analyse development patterns to estimate IBNR and ultimate loss ratios."}, {"s": "Non-standard construction in property claims refers to:", "o": ["Buildings not meeting building regulations", "Buildings with non-standard materials like flat roofs or timber frames requiring specialist treatment", "Buildings in unusual locations", "Buildings with unusual occupancy"], "a": 1, "d": "medium", "e": "Non-standard construction includes flat roofs, timber frames, prefabricated panels, or thatched roofs. These require specialist claims handling \u2014 repair costs and rebuild times differ from standard construction."}, {"s": "The Insurance Fraud Bureau IFB is:", "o": ["A government department", "An industry body detecting and preventing organised insurance fraud", "The FCA's fraud investigation unit", "A court specialising in insurance fraud"], "a": 1, "d": "medium", "e": "The IFB is a not-for-profit organisation funded by the UK insurance industry, focusing on detecting, disrupting, and preventing organised and linked insurance fraud across all lines of business."}, {"s": "A red flag indicator of potential motor insurance fraud includes:", "o": ["Claim notified same day as accident", "Third party witnesses corroborate the account", "Late notification weeks after incident with multiple claimants and no witnesses", "Vehicle is recently purchased"], "a": 2, "d": "medium", "e": "Late notification weeks after an incident, multiple claimants from one vehicle, no independent witnesses, inconsistent accounts, and pre-existing damage are all red flags triggering enhanced investigation."}, {"s": "Like for like reinstatement in buildings claims means:", "o": ["Replacing with the cheapest materials", "Restoring using materials of similar type and quality to those damaged", "Replacing with modern equivalent materials", "Paying market value regardless of materials"], "a": 1, "d": "easy", "e": "Like for like means the insurer reinstates using materials matching the original as closely as possible in quality and type \u2014 maintaining the indemnity principle while ensuring comparable quality of repair."}, {"s": "Costs follow the event in civil litigation means:", "o": ["Legal costs paid by government", "The winning party is awarded their legal costs", "Each party pays their own costs", "Costs are shared equally"], "a": 1, "d": "hard", "e": "Costs follow the event is the default English civil litigation rule \u2014 the losing party typically pays the winner's legal costs. This influences insurers' decisions on whether to contest or settle liability claims."}, {"s": "The Civil Liability Act 2018 primarily reformed:", "o": ["Employers liability claims", "Whiplash claims from road traffic accidents", "Professional indemnity claims", "Marine liability claims"], "a": 1, "d": "hard", "e": "The Civil Liability Act 2018 introduced whiplash reforms \u2014 fixed tariff damages for minor whiplash injuries, a higher small claims track threshold, and the OIC portal \u2014 to reduce fraudulent and exaggerated RTA claims."}, {"s": "Open cover in marine cargo insurance is:", "o": ["Cover with no exclusions", "A standing facility covering all shipments declared by the insured automatically", "A policy with no premium", "Lloyd's open protocol"], "a": 1, "d": "medium", "e": "An open cover is a marine cargo insurance facility under which all qualifying shipments made by the insured are automatically covered as they are declared \u2014 avoiding the need to arrange specific cover for each shipment."}, {"s": "In a liability claim breach of duty requires showing:", "o": ["The defendant intended to cause harm", "The defendant failed to meet the standard of care expected of a reasonable person", "The claimant suffered a financial loss", "The defendant was insured"], "a": 1, "d": "medium", "e": "In negligence, breach of duty requires showing the defendant fell below the standard of care expected of a reasonable person in the same circumstances \u2014 an objective test determined by the court."}, {"s": "Accelerated settlement in motor claims involves:", "o": ["Paying before investigating", "Offering a reduced but quick settlement to avoid prolonged dispute", "Fast-track processing of all claims", "Settlement by telephone within 24 hours"], "a": 1, "d": "medium", "e": "Accelerated settlement involves offering a lower but immediate payment to resolve a claim quickly rather than engaging in protracted negotiation. It can reduce both claim costs and administrative expenses."}, {"s": "Priority of payments clauses in liability policies determine:", "o": ["The order of premium payments", "Which coverage elements are paid first if the aggregate limit is insufficient", "Which large claims take priority", "Which reinsurer pays first"], "a": 1, "d": "hard", "e": "Priority of payments clauses determine the order in which different coverage elements such as defence costs and damages are paid from the policy limit \u2014 important when aggregate limits risk exhaustion across multiple claims."}, {"s": "In a property claim reinstatement value differs from market value in that:", "o": ["Reinstatement value is always lower", "Reinstatement value is the rebuilding cost while market value includes land and supply and demand factors", "Market value is used for all commercial claims", "They are identical for modern buildings"], "a": 1, "d": "medium", "e": "Market value reflects what a property sells for in the open market including land. Reinstatement value is the cost of rebuilding which can be significantly higher for heritage buildings or specialist structures."}, {"s": "An appointed representative AR in insurance differs from a directly authorised firm in that:", "o": ["Both have the same FCA permissions", "ARs act under the regulatory umbrella of a principal firm while directly authorised firms hold their own FCA permissions", "ARs cannot handle claims", "Directly authorised firms are only for Lloyd's market"], "a": 1, "d": "hard", "e": "Appointed Representatives carry on regulated activities under the regulatory umbrella and responsibility of a directly authorised principal firm. Directly authorised firms hold their own FCA authorisation and permissions."}, {"s": "A disclosure obligation during the policy period requires the insured to:", "o": ["Disclose all personal information annually", "Notify material changes to the risk that may affect cover", "Provide updated financial statements", "Submit annual claims experience reports"], "a": 1, "d": "medium", "e": "Many policies include ongoing disclosure obligations requiring the insured to notify the insurer of material changes to the risk during the policy period \u2014 such as changes in use, construction, or security arrangements."}, {"s": "In business interruption insurance the maximum indemnity period should be set to:", "o": ["12 months as standard", "Reflect the realistic time to restore the business to its pre-loss position", "Match the policy period exactly", "The time to settle the material damage claim"], "a": 1, "d": "medium", "e": "The BI indemnity period should reflect the maximum realistic time required to restore the business to its pre-loss trading position \u2014 including rebuilding, re-equipping, and restoring customer relationships. Inadequate periods are a common underinsurance problem."}, {"s": "The Rehabilitation Code in personal injury claims is:", "o": ["Legally binding on all insurers", "A voluntary protocol endorsed jointly by insurers and claimant lawyers", "An FCA regulatory requirement", "An HM Courts Service protocol"], "a": 1, "d": "hard", "e": "The Rehabilitation Code is a voluntary protocol jointly endorsed by insurers and claimant lawyers. It provides that early rehabilitation assessment and treatment should be considered in serious injury claims to improve outcomes and reduce costs."}]};
+let CFG={units:["IF1","IF3","IF4"],total:20};
+let SES={qs:[],ans:[],cur:0,correct:0};
+let LT=JSON.parse(localStorage.getItem("cii_lt")||'{"att":0,"cor":0,"ses":0}');
+function sh(id){["home","exam","results"].forEach(s=>document.getElementById(s).style.display="none");document.getElementById(id).style.display="block";if(id==="home")document.getElementById(id).style.display="flex";window.scrollTo(0,0);}
+function updateStats(){document.getElementById("sh-att").textContent=LT.att;const acc=LT.att?Math.round(LT.cor/LT.att*100):0;document.getElementById("sh-acc").textContent=acc+"%";document.getElementById("sh-ses").textContent=LT.ses;}
+updateStats();
+function toggleCard(el){el.classList.toggle("on");CFG.units=[...document.querySelectorAll(".card.on")].map(c=>c.dataset.unit);}
+function selCnt(el){document.querySelectorAll(".cnt").forEach(b=>b.classList.remove("on"));el.classList.add("on");CFG.total=parseInt(el.dataset.n);}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function startSession(){
+  if(!CFG.units.length){alert("Select at least one unit");return;}
+  let pool=[];
+  CFG.units.forEach(u=>QB[u].forEach(q=>pool.push({...q,unit:u})));
+  shuffle(pool);
+  pool=pool.slice(0,CFG.total);
+  pool=pool.map(q=>{
+    const pairs=q.o.map((opt,i)=>{return{opt,orig:i}});
+    shuffle(pairs);
+    return{...q,options:pairs.map(p=>p.opt),a:pairs.findIndex(p=>p.orig===q.a)};
   });
-
-  if (!response.ok) {
-    const errBody = await response.text();
-    throw new Error("API " + response.status + ": " + errBody.slice(0, 300));
-  }
-  const data = await response.json();
-  if (data.error) throw new Error("Claude: " + JSON.stringify(data.error));
-  const raw = (data.content || []).map(c => c.text || '').join('');
-  const match = raw.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error("No JSON in: " + raw.slice(0, 200));
-  const parsed = JSON.parse(match[0]);
-  return parsed.filter(q =>
-    q.stem && Array.isArray(q.options) && q.options.length === 4
-    && typeof q.answer === 'number' && q.explanation
-  );
+  SES={qs:pool,ans:new Array(pool.length).fill(null).map(()=>({sel:null,skip:false})),cur:0,correct:0};
+  sh("exam");renderQ();
 }
-
-async function fillBuffer() {
-  if (FETCHING || BUFFER.length >= 8) return;
-  FETCHING = true;
-  setPrefetch('loading', 'generating…');
-  try {
-    const batch = await generateBatch(CFG.units, 3);
-    BUFFER.push(...batch);
-    setPrefetch('ready', `${BUFFER.length} queued`);
-  } catch(e) {
-    console.error('Prefetch failed', e);
-    setPrefetch('empty', 'retry…');
-  }
-  FETCHING = false;
+function renderQ(){
+  const q=SES.qs[SES.cur];const total=SES.qs.length;const ltrs=["A","B","C","D"];
+  document.getElementById("tb-unit").textContent=q.unit;
+  document.getElementById("tb-qi").textContent="Q"+(SES.cur+1)+" of "+total;
+  document.getElementById("pbar").style.width=(SES.cur/total*100)+"%";
+  document.getElementById("tb-sc").textContent=SES.correct+"/"+(SES.cur);
+  const dc=q.d==="easy"?"de":q.d==="hard"?"dh":"dm";
+  document.getElementById("qwrap").innerHTML=
+    "<div class=\"qmeta\"><span class=\"qnum\">Q"+(SES.cur+1)+"</span><span class=\"ddot "+dc+"\"></span><span class=\"dlbl\">"+q.d+"</span><span class=\"qnum\" style=\"margin-left:6px\">&#183; "+q.unit+"</span></div>"+
+    "<div class=\"qstem\">"+q.s+"</div>"+
+    "<div class=\"opts\" id=\"opts\">"+
+    q.options.map((opt,i)=>"<button class=\"opt\" data-i=\""+i+"\" onclick=\"pick("+i+")\"><span class=\"oltr\">"+ltrs[i]+"</span><span>"+opt+"</span></button>").join("")+
+    "</div>"+
+    "<div class=\"ep\" id=\"ep\"><div class=\"ep-hdr\"><span>&#128161;</span><span class=\"ep-ttl\">Explanation</span></div><div class=\"ep-txt\" id=\"et\"></div></div>"+
+    "<div class=\"act-row\"><button class=\"btn-skip\" onclick=\"skip()\">Skip &#8594;</button><button class=\"btn-nxt\" id=\"bn\" onclick=\"advance()\" disabled>"+(SES.cur+1>=total?"Finish &#8594;":"Next &#8594;")+"</button></div>";
 }
-
-function setPrefetch(state, label) {
-  const dot = document.getElementById('prefetch-dot');
-  const lbl = document.getElementById('prefetch-label');
-  dot.className = 'prefetch-dot ' + state;
-  lbl.textContent = label;
-}
-
-// ═══════════════════════════════════════════════════════════
-//  SESSION START
-// ═══════════════════════════════════════════════════════════
-
-async function beginSession() {
-  if (!CFG.units.length) { showToast('Select at least one unit'); return; }
-
-  BUFFER = [];
-  HISTORY_TOPICS.clear();
-  SESSION = { questions: [], answers: [], current: 0, correctSoFar: 0 };
-
-  show('exam');
-  renderLoading('Generating your first questions…', 'This takes a few seconds — questions are crafted fresh each session.');
-
-  try {
-    const firstBatch = await generateBatch(CFG.units, 3);
-    BUFFER.push(...firstBatch);
-    // Kick off more in background
-    fillBuffer();
-    nextQuestion();
-  } catch(e) {
-    renderError('Error: ' + (e.message || JSON.stringify(e)));
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-//  EXAM FLOW
-// ═══════════════════════════════════════════════════════════
-
-async function nextQuestion() {
-  const qNum = SESSION.questions.length;
-
-  if (qNum >= CFG.total) {
-    showResults();
-    return;
-  }
-
-  // Ensure buffer has a question
-  if (BUFFER.length === 0) {
-    renderLoading('Generating more questions…', 'One moment…');
-    let attempts = 0;
-    while (BUFFER.length === 0 && attempts < 15) {
-      if (!FETCHING) fillBuffer();
-      await sleep(600);
-      attempts++;
-    }
-    if (BUFFER.length === 0) {
-      renderError('Could not fetch next question. Please retry.');
-      return;
-    }
-  }
-
-  const q = BUFFER.shift();
-  SESSION.questions.push(q);
-  SESSION.answers.push({ selected: null, skipped: false });
-
-  // Prefetch more in background
-  if (BUFFER.length < 4 && !FETCHING) fillBuffer();
-
-  renderQuestion(q, qNum);
-}
-
-function renderQuestion(q, idx) {
-  const total = CFG.total;
-  const letters = ['A','B','C','D'];
-
-  document.getElementById('topbar-unit').textContent = q.unit;
-  document.getElementById('topbar-q').textContent = `Q${idx+1} of ${total}`;
-  document.getElementById('prog-fill').style.width = `${(idx/total)*100}%`;
-  document.getElementById('topbar-score').textContent =
-    `${SESSION.correctSoFar} / ${idx}`;
-
-  const diffClass = { easy:'diff-easy', medium:'diff-medium', hard:'diff-hard' }[q.difficulty] || 'diff-medium';
-
-  const wrap = document.getElementById('question-wrap');
-  wrap.innerHTML = `
-    <div class="q-meta">
-      <span class="q-num">Q${idx+1}</span>
-      <span class="difficulty-dot ${diffClass}"></span>
-      <span class="diff-label">${q.difficulty||'medium'}</span>
-      <span class="q-num" style="margin-left:6px">· ${q.unit}</span>
-    </div>
-    <div class="question-stem">${q.stem}</div>
-    <div class="options" id="opts">
-      ${q.options.map((opt,i) => `
-        <button class="option" data-i="${i}" onclick="selectAnswer(${i})">
-          <span class="opt-letter">${letters[i]}</span>
-          <span>${opt}</span>
-        </button>
-      `).join('')}
-    </div>
-    <div class="explanation-panel" id="exp-panel">
-      <div class="exp-header-row">
-        <span class="exp-icon">💡</span>
-        <span class="exp-title">Explanation</span>
-      </div>
-      <div class="exp-text" id="exp-text">
-        <div class="exp-loading"><div class="pulse-dot"></div> Loading…</div>
-      </div>
-    </div>
-    <div class="action-row">
-      <button class="btn-skip" onclick="skipCurrent()">Skip →</button>
-      <button class="btn-next" id="btn-next" onclick="confirmNext()" disabled>
-        ${idx+1 >= CFG.total ? 'Finish Exam' : 'Next Question'} →
-      </button>
-    </div>
-  `;
-}
-
-function selectAnswer(i) {
-  const q = SESSION.questions[SESSION.current];
-  const ans = SESSION.answers[SESSION.current];
-  if (ans.selected !== null || ans.skipped) return;
-
-  ans.selected = i;
-  const correct = i === q.answer;
-  if (correct) SESSION.correctSoFar++;
-
-  // Track weak topics
-  if (!correct) {
-    const topic = q.topic || q.unit;
-    if (!LIFETIME.weakTopics.includes(topic)) {
-      LIFETIME.weakTopics.unshift(topic);
-      if (LIFETIME.weakTopics.length > 20) LIFETIME.weakTopics.pop();
-    }
-  }
-
-  // Lock + colour options
-  document.querySelectorAll('.option').forEach((btn, idx) => {
-    btn.classList.add('locked');
-    if (idx === q.answer) btn.classList.add('correct');
-    else if (idx === i && !correct) btn.classList.add('wrong');
-    else btn.classList.add('dimmed');
+function pick(i){
+  const a=SES.ans[SES.cur];if(a.sel!==null||a.skip)return;
+  a.sel=i;const q=SES.qs[SES.cur];const cor=i===q.a;
+  if(cor)SES.correct++;
+  document.querySelectorAll(".opt").forEach((btn,idx)=>{
+    btn.classList.add("locked");
+    if(idx===q.a)btn.classList.add("cor");
+    else if(idx===i&&!cor)btn.classList.add("wrg");
+    else btn.classList.add("dim");
   });
-
-  document.getElementById('topbar-score').textContent =
-    `${SESSION.correctSoFar} / ${SESSION.current+1}`;
-
-  // Show explanation
-  if (CFG.mode === 'practice' || true) { // always show in exam too after answer
-    const panel = document.getElementById('exp-panel');
-    panel.style.display = 'block';
-    document.getElementById('exp-text').textContent = q.explanation;
-  }
-
-  document.getElementById('btn-next').disabled = false;
+  document.getElementById("tb-sc").textContent=SES.correct+"/"+(SES.cur+1);
+  const ep=document.getElementById("ep");ep.style.display="block";
+  document.getElementById("et").textContent=q.e||"";
+  document.getElementById("bn").disabled=false;
 }
-
-function skipCurrent() {
-  SESSION.answers[SESSION.current].skipped = true;
-  SESSION.answers[SESSION.current].selected = null;
-  advanceQuestion();
+function skip(){SES.ans[SES.cur].skip=true;advance();}
+function advance(){SES.cur++;if(SES.cur>=SES.qs.length)showResults();else renderQ();}
+function quitExam(){if(SES.qs.length&&confirm("Quit and see results?"))showResults();}
+function showResults(){
+  document.getElementById("pbar").style.width="100%";
+  LT.ses++;
+  const total=SES.qs.length;const cor=SES.correct;
+  const skip=SES.ans.filter(a=>a.skip).length;const wrong=total-cor-skip;
+  const pct=total?Math.round(cor/total*100):0;
+  LT.att+=total;LT.cor+=cor;localStorage.setItem("cii_lt",JSON.stringify(LT));
+  sh("results");
+  const arc=document.getElementById("sc-arc");const circ=377;const passed=pct>=65;
+  arc.style.stroke=passed?"#34d399":pct>=50?"#d4af37":"#f87171";
+  setTimeout(()=>{arc.style.strokeDashoffset=circ-(pct/100)*circ;},200);
+  document.getElementById("r-pct").textContent=pct+"%";
+  document.getElementById("r-verdict").textContent=pct>=80?"Exam Ready &#10022;":pct>=65?"Pass &#8212; Keep Going":pct>=50?"Nearly There":"More Revision Needed";
+  document.getElementById("r-sub").textContent="CII pass mark approx 65%. "+(passed?"You're on track!":"Focus on the wrong answers below.");
+  document.getElementById("r-chips").innerHTML=
+    "<div class=\"chip "+(passed?"pass-c":"fail-c")+"\">"+( passed?"PASS":"BELOW PASS")+"</div>"+
+    "<div class=\"chip\">&#10003; <strong>"+cor+"</strong> Correct</div>"+
+    "<div class=\"chip\">&#10007; <strong>"+wrong+"</strong> Wrong</div>"+
+    "<div class=\"chip\">&#8212; <strong>"+skip+"</strong> Skipped</div>"+
+    "<div class=\"chip\">&#128203; <strong>"+total+"</strong> Total</div>";
+  buildRv("all");
 }
-
-function confirmNext() {
-  advanceQuestion();
-}
-
-function advanceQuestion() {
-  SESSION.current++;
-  nextQuestion();
-}
-
-// ═══════════════════════════════════════════════════════════
-//  RESULTS
-// ═══════════════════════════════════════════════════════════
-
-function showResults() {
-  LIFETIME.sessions++;
-  const total = SESSION.questions.length;
-  const correct = SESSION.correctSoFar;
-  const skipped = SESSION.answers.filter(a => a.skipped).length;
-  const wrong = total - correct - skipped;
-  const pct = total ? Math.round((correct/total)*100) : 0;
-
-  LIFETIME.attempted += total;
-  LIFETIME.correct += correct;
-  localStorage.setItem('cii_lifetime', JSON.stringify(LIFETIME));
-
-  show('results');
-
-  // Score circle
-  const arc = document.getElementById('score-arc');
-  const circumference = 408;
-  const passed = pct >= 65;
-  arc.style.stroke = passed ? '#34d399' : (pct >= 50 ? '#d4af37' : '#f87171');
-  setTimeout(() => {
-    arc.style.strokeDashoffset = circumference - (pct/100)*circumference;
-  }, 200);
-
-  document.getElementById('res-pct').textContent = pct + '%';
-  document.getElementById('res-verdict').textContent =
-    pct >= 80 ? 'Exam Ready ✦' :
-    pct >= 65 ? 'Pass — Keep Going' :
-    pct >= 50 ? 'Nearly There' : 'More Revision Needed';
-  document.getElementById('res-sub').textContent =
-    `CII pass mark ≈ 65%. ${passed ? 'You\'re on track for the real exam.' : 'Review the explanations below and drill weak areas.'}`;
-
-  document.getElementById('res-chips').innerHTML = `
-    <div class="chip ${passed?'pass-chip':'fail-chip'}">${passed?'PASS':'BELOW PASS'}</div>
-    <div class="chip">✓ <strong>${correct}</strong> Correct</div>
-    <div class="chip">✗ <strong>${wrong}</strong> Wrong</div>
-    <div class="chip">— <strong>${skipped}</strong> Skipped</div>
-    <div class="chip">📋 <strong>${total}</strong> Total</div>
-  `;
-
-  buildReviewList('all');
-}
-
-function buildReviewList(filter) {
-  const list = document.getElementById('review-list');
-  list.innerHTML = '';
-  const letters = ['A','B','C','D'];
-
-  SESSION.questions.forEach((q, i) => {
-    const a = SESSION.answers[i];
-    const isCorrect = a.selected === q.answer;
-    const isSkipped = a.skipped || a.selected === null;
-    const status = isSkipped ? 'skipped' : (isCorrect ? 'correct' : 'wrong');
-
-    if (filter !== 'all' && filter !== status) return;
-
-    const card = document.createElement('div');
-    card.className = `review-card ${status}`;
-
-    const icon = isSkipped ? '—' : (isCorrect ? '✓' : '✗');
-    const yourAnswer = isSkipped ? 'Skipped' : q.options[a.selected];
-    const correctAnswer = q.options[q.answer];
-
-    card.innerHTML = `
-      <div class="review-card-header" onclick="toggleReview(this)">
-        <div class="rv-icon ${status}">${icon}</div>
-        <div class="rv-q">
-          <div class="rv-unit">${q.unit} · ${q.topic||''}</div>
-          ${q.stem}
-        </div>
-        <div class="rv-chevron">▾</div>
-      </div>
-      <div class="review-card-body">
-        <div class="answer-tags">
-          <span class="answer-tag tag-yours ${isCorrect?'correct':''}">
-            Your answer: ${isSkipped ? '—' : yourAnswer}
-          </span>
-          ${!isCorrect && !isSkipped ? `<span class="answer-tag tag-correct">Correct: ${correctAnswer}</span>` : ''}
-        </div>
-        <div class="review-explanation">${q.explanation}</div>
-      </div>
-    `;
+function buildRv(f){
+  const list=document.getElementById("rv-list");list.innerHTML="";
+  SES.qs.forEach((q,i)=>{
+    const a=SES.ans[i];const isCor=a.sel===q.a;const isSkip=a.skip||a.sel===null;
+    const st=isSkip?"skipped":isCor?"correct":"wrong";
+    if(f!=="all"&&f!==st)return;
+    const icon=isSkip?"&#8212;":isCor?"&#10003;":"&#10007;";
+    const yours=isSkip?"Skipped":q.options[a.sel];
+    const correct=q.options[q.a];
+    const card=document.createElement("div");card.className="rcard "+st;
+    card.innerHTML=
+      "<div class=\"rcard-hdr\" onclick=\"togRv(this)\">"+
+        "<div class=\"rv-ic "+st+"\">"+icon+"</div>"+
+        "<div class=\"rv-q\"><div class=\"rv-u\">"+q.unit+"</div>"+q.s+"</div>"+
+        "<div class=\"rv-chv\">&#9662;</div>"+
+      "</div>"+
+      "<div class=\"rcard-body\">"+
+        "<div class=\"atags\">"+
+          "<span class=\"atag ty"+(isCor?" cor":"")+"\">Your answer: "+(isSkip?"&#8212;":yours)+"</span>"+
+          (!isCor&&!isSkip?"<span class=\"atag tc\">Correct: "+correct+"</span>":"")+
+        "</div>"+
+        "<div class=\"rexp\">"+q.e+"</div>"+
+      "</div>";
     list.appendChild(card);
   });
-
-  if (!list.children.length) {
-    list.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:32px;font-size:0.9rem;">No questions in this category.</div>';
-  }
+  if(!list.children.length)list.innerHTML="<div style=\"color:var(--dim);text-align:center;padding:28px;font-size:.88rem\">No questions in this category.</div>";
 }
-
-function filterReview(el) {
-  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('on'));
-  el.classList.add('on');
-  buildReviewList(el.dataset.filter);
-}
-
-function toggleReview(header) {
-  const body = header.nextElementSibling;
-  const chevron = header.querySelector('.rv-chevron');
-  body.classList.toggle('open');
-  chevron.classList.toggle('open');
-}
-
-// ═══════════════════════════════════════════════════════════
-//  UTILITIES
-// ═══════════════════════════════════════════════════════════
-
-function renderLoading(msg, sub) {
-  document.getElementById('question-wrap').innerHTML = `
-    <div class="q-loading">
-      <div class="spinner"></div>
-      <div class="loading-text">${msg}</div>
-      <div class="loading-subtext">${sub}</div>
-    </div>
-  `;
-}
-
-function renderError(msg) {
-  document.getElementById('question-wrap').innerHTML = `
-    <div class="q-loading">
-      <div style="font-size:2rem">⚠️</div>
-      <div class="loading-text" style="color:var(--red)">${msg}</div>
-      <button class="btn-next" style="margin-top:16px" onclick="beginSession()">Retry</button>
-    </div>
-  `;
-}
-
-function show(id) {
-  ['home','exam','results'].forEach(s => {
-    document.getElementById(s).style.display = s === id ? 'block' : 'none';
-  });
-  if (id === 'home') document.getElementById('home').style.display = 'flex';
-  window.scrollTo(0,0);
-}
-
-// Initial display
-document.getElementById('exam').style.display = 'none';
-document.getElementById('results').style.display = 'none';
-
-function retake() {
-  beginSession();
-}
-
-function goHome() {
-  show('home');
-  updateHomeStats();
-}
-
-function confirmQuit() {
-  if (SESSION.questions.length > 0) {
-    if (confirm('Quit this session? Progress will be lost.')) showResults();
-  } else {
-    goHome();
-  }
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3000);
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// ═══════════════════════════════════════════════════════════
-//  KEY ENTRY
-// ═══════════════════════════════════════════════════════════
-function submitKey() {
-  const val = document.getElementById('key-input').value.trim();
-  if (!val.startsWith('sk-ant-')) {
-    document.getElementById('key-error').style.display = 'block';
-    return;
-  }
-  localStorage.setItem('cii_api_key', val);
-  document.getElementById('keyscreen').style.display = 'none';
-}
-
-// On load: show key screen if no key stored
-window.addEventListener('DOMContentLoaded', function() {
-  updateHomeStats();
-  if (!localStorage.getItem('cii_api_key')) {
-    document.getElementById('keyscreen').style.display = 'flex';
-  }
-});
-
+function filterRv(el){document.querySelectorAll(".fp").forEach(p=>p.classList.remove("on"));el.classList.add("on");buildRv(el.dataset.f);}
+function togRv(hdr){const b=hdr.nextElementSibling,c=hdr.querySelector(".rv-chv");b.classList.toggle("open");c.classList.toggle("open");}
+function goHome(){sh("home");updateStats();}
 </script>
 </body>
 </html>

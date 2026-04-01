@@ -1089,42 +1089,15 @@ function pickTopicsForBatch(unit, count=5) {
   return picked;
 }
 
-async function generateBatch(units, count=5) {
-  const unitStr = units.join(', ');
-  // Pick a random unit weighted by selection and grab topics
+async function generateBatch(units, count=3) {
   const unit = units[Math.floor(Math.random()*units.length)];
-  const topics = pickTopicsForBatch(unit, Math.min(count, 5));
+  const topics = pickTopicsForBatch(unit, count);
 
-  const weakMode = CFG.mode === 'weakspot' && LIFETIME.weakTopics.length > 0;
-  const weakContext = weakMode
-    ? `The candidate has previously struggled with: ${LIFETIME.weakTopics.slice(0,5).join(', ')}. Bias questions toward these areas.`
-    : '';
-
-  const prompt = `You are an expert CII (Chartered Insurance Institute) examiner writing questions for the ${unit} unit of the Cert CII qualification.
-
-Generate exactly ${count} multiple-choice questions. Each must:
-- Closely replicate authentic CII exam style: clear, unambiguous stem ending in a question or incomplete sentence
-- Have exactly 4 options (A-D), only ONE correct
-- Cover these topics (spread across them): ${topics.join(', ')}
-- Vary difficulty: mix easy (definitions), medium (application), hard (nuanced scenarios)
-- Never use trick wording — be fair but challenging
-- For IF1: focus on UK legal/regulatory framework
-- For IF3: focus on underwriting principles, rating, reinsurance
-- For IF4: focus on claims process, law, and practice
-${weakContext}
-
-Respond ONLY with a valid JSON array, no markdown, no preamble:
-[
-  {
-    "unit": "${unit}",
-    "topic": "topic name",
-    "difficulty": "easy|medium|hard",
-    "stem": "Question text here?",
-    "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
-    "answer": 0,
-    "explanation": "Clear 2-3 sentence explanation of why the correct answer is right and why common wrong answers are wrong."
-  }
-]`;
+  const prompt = `You are a CII examiner. Generate exactly ${count} MCQ questions for Cert CII unit ${unit}.
+Topics: ${topics.join(', ')}.
+IF1=UK legal/regulatory, IF3=underwriting/reinsurance, IF4=claims process.
+Respond ONLY with a raw JSON array (no markdown, no text outside the array):
+[{"unit":"${unit}","topic":"string","difficulty":"easy","stem":"Question?","options":["A","B","C","D"],"answer":0,"explanation":"Explanation here."}]`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -1135,21 +1108,22 @@ Respond ONLY with a valid JSON array, no markdown, no preamble:
       "anthropic-dangerous-direct-browser-access": "true"
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 1000,
+      model: "claude-haiku-4-5",
+      max_tokens: 4000,
       messages: [{ role: "user", content: prompt }]
     })
   });
 
-  if (!response.ok) { const errBody = await response.clone().text(); throw new Error("API " + response.status + ": " + errBody.slice(0,200)); }
+  if (!response.ok) {
+    const errBody = await response.text();
+    throw new Error("API " + response.status + ": " + errBody.slice(0, 300));
+  }
   const data = await response.json();
-  const raw = data.content?.map(c=>c.text||'').join('') || '[]';
-
-  // Strip any accidental markdown
-  const clean = raw.replace(/```json|```/g,'').trim();
-  const parsed = JSON.parse(clean);
-
-  // Validate
+  if (data.error) throw new Error("Claude: " + JSON.stringify(data.error));
+  const raw = (data.content || []).map(c => c.text || '').join('');
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error("No JSON in: " + raw.slice(0, 200));
+  const parsed = JSON.parse(match[0]);
   return parsed.filter(q =>
     q.stem && Array.isArray(q.options) && q.options.length === 4
     && typeof q.answer === 'number' && q.explanation
@@ -1161,7 +1135,7 @@ async function fillBuffer() {
   FETCHING = true;
   setPrefetch('loading', 'generating…');
   try {
-    const batch = await generateBatch(CFG.units, 5);
+    const batch = await generateBatch(CFG.units, 3);
     BUFFER.push(...batch);
     setPrefetch('ready', `${BUFFER.length} queued`);
   } catch(e) {
@@ -1193,7 +1167,7 @@ async function beginSession() {
   renderLoading('Generating your first questions…', 'This takes a few seconds — questions are crafted fresh each session.');
 
   try {
-    const firstBatch = await generateBatch(CFG.units, 5);
+    const firstBatch = await generateBatch(CFG.units, 3);
     BUFFER.push(...firstBatch);
     // Kick off more in background
     fillBuffer();
